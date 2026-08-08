@@ -347,7 +347,7 @@
       <h5 class="mb-0"><i class="bi bi-people-fill text-success me-1"></i> Data Guru</h5>
       <div class="d-flex gap-2 flex-wrap">
         <button class="btn btn-sp-outline" onclick="downloadTemplateGuru()"><i class="bi bi-download"></i> Download Template</button>
-        <button class="btn btn-sp-outline" onclick="document.getElementById(\'fileGuruExcel\').click()"><i class="bi bi-file-earmark-excel"></i> Upload Excel</button>
+        <button class="btn btn-sp-outline" onclick="document.getElementById(&quot;fileGuruExcel&quot;).click()"><i class="bi bi-file-earmark-excel"></i> Upload Excel</button>
         <input type="file" id="fileGuruExcel" accept=".xlsx,.xls" class="d-none" onchange="handleUploadGuruExcel(event)">
         <button class="btn btn-sp-green" data-bs-toggle="modal" data-bs-target="#modalGuru" onclick="openGuruModal()">
           <i class="bi bi-plus-lg"></i> Tambah Guru
@@ -413,7 +413,7 @@
       <h5 class="mb-0"><i class="bi bi-building text-success me-1"></i> Data Sekolah</h5>
       <div class="d-flex gap-2 flex-wrap">
         <button class="btn btn-sp-outline" onclick="downloadTemplateSekolah()"><i class="bi bi-download"></i> Download Template</button>
-        <button class="btn btn-sp-outline" onclick="document.getElementById(\'fileSekolahExcel\').click()"><i class="bi bi-file-earmark-excel"></i> Upload Excel</button>
+        <button class="btn btn-sp-outline" onclick="document.getElementById(&quot;fileSekolahExcel&quot;).click()"><i class="bi bi-file-earmark-excel"></i> Upload Excel</button>
         <input type="file" id="fileSekolahExcel" accept=".xlsx,.xls" class="d-none" onchange="handleUploadSekolahExcel(event)">
         <button class="btn btn-sp-green" data-bs-toggle="modal" data-bs-target="#modalSekolah" onclick="openSekolahModal()">
           <i class="bi bi-plus-lg"></i> Tambah Sekolah
@@ -1157,7 +1157,17 @@ function handleScanResult(res) {
   const statusEl = document.getElementById('popupStatus');
 
   card.classList.remove('error');
-  foto.style.display = 'none';
+
+  function showFoto(fotoUrl, nama) {
+    const src = fotoUrl || ('https://ui-avatars.com/api/?background=166534&color=fff&size=140&name=' + encodeURIComponent(nama || '?'));
+    foto.src = src;
+    foto.style.display = 'inline-block';
+    icon.style.display = 'none';
+  }
+  function hideFoto() {
+    foto.style.display = 'none';
+    icon.style.display = 'flex';
+  }
 
   if (res.success) {
     document.getElementById('popupNama').innerText = res.guru.nama;
@@ -1165,8 +1175,7 @@ function handleScanResult(res) {
     document.getElementById('popupJam').innerText = 'Pukul ' + res.guru.jam;
     statusEl.innerText = 'HADIR';
     statusEl.style.background = 'var(--sp-green-600)';
-    icon.innerHTML = '<i class="bi bi-check-lg"></i>';
-    icon.style.background = '#dcfce7'; icon.style.color = 'var(--sp-green-600)';
+    showFoto(res.guru.foto, res.guru.nama);
     speak((res.guru.jenisKelamin === 'Laki-laki' ? 'Bapak ' : 'Ibu ') + res.guru.nama + ' telah hadir.');
     loadRecentAttendance();
     refreshScanStats();
@@ -1177,8 +1186,7 @@ function handleScanResult(res) {
     document.getElementById('popupJam').innerText = 'Absen pukul ' + res.guru.jam;
     statusEl.innerText = 'SUDAH ABSEN';
     statusEl.style.background = '#dc2626';
-    icon.innerHTML = '<i class="bi bi-x-lg"></i>';
-    icon.style.background = '#fee2e2'; icon.style.color = '#dc2626';
+    showFoto(res.guru.foto, res.guru.nama);
     speak('Sudah melakukan absensi.');
   } else {
     card.classList.add('error');
@@ -1187,6 +1195,7 @@ function handleScanResult(res) {
     document.getElementById('popupJam').innerText = '';
     statusEl.innerText = 'GAGAL';
     statusEl.style.background = '#dc2626';
+    hideFoto();
     icon.innerHTML = '<i class="bi bi-exclamation-triangle"></i>';
     icon.style.background = '#fee2e2'; icon.style.color = '#dc2626';
   }
