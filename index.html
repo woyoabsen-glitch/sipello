@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIPELLO - Sistem Informasi Presensi Elektronik</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+  :root{
+    --sp-green-900:#0f3d24;
+    --sp-green-800:#14532d;
+    --sp-green-700:#166534;
+    --sp-green-600:#16a34a;
+    --sp-green-500:#22c55e;
+    --sp-green-50:#f0fdf4;
+    --sp-orange:#f59e0b;
+    --sp-blue:#3b82f6;
+    --sp-purple:#8b5cf6;
+    --sp-text:#1f2937;
+    --sp-muted:#6b7280;
+    --sp-border:#e5e7eb;
+    --sp-bg:#f7f9f8;
+  }
+  *{font-family:'Poppins',sans-serif;}
+  body{background:var(--sp-bg); color:var(--sp-text); margin:0;}
+  .d-none{display:none !important;}
+
+  /* ---------- LOGIN ---------- */
+  #loginView{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,var(--sp-green-900),var(--sp-green-700));
+    padding:20px;
+  }
+  .login-card{
+    background:#fff; border-radius:20px; padding:40px 36px; width:100%; max-width:400px;
+    box-shadow:0 20px 60px rgba(0,0,0,.25); text-align:center;
+  }
+  .login-card .brand-icon{
+    width:64px; height:64px; border-radius:16px; background:var(--sp-green-600);
+    display:flex; align-items:center; justify-content:center; margin:0 auto 14px; color:#fff; font-size:30px;
+  }
+  .login-card h3{font-weight:800; color:var(--sp-green-800); margin-bottom:2px;}
+  .login-card p.subtitle{color:var(--sp-muted); font-size:13px; margin-bottom:24px;}
+  .login-card .form-control{border-radius:10px; padding:11px 14px; border:1px solid var(--sp-border);}
+  .btn-sp-primary{
+    background:var(--sp-green-700); border:none; color:#fff; font-weight:600; border-radius:10px; padding:11px;
+  }
+  .btn-sp-primary:hover{background:var(--sp-green-800); color:#fff;}
+  #loginError{display:none;}
+
+  /* ---------- SHELL ---------- */
+  #appShell{display:flex; min-height:100vh;}
+  .sidebar{
+    width:250px; min-width:250px; background:linear-gradient(180deg,var(--sp-green-800),var(--sp-green-900));
+    color:#fff; display:flex; flex-direction:column; padding:20px 16px; position:sticky; top:0; height:100vh;
+  }
+  .sidebar-brand{display:flex; align-items:center; gap:10px; padding:6px 6px 18px;}
+  .sidebar-brand .icon-wrap{
+    width:42px; height:42px; border-radius:10px; background:var(--sp-orange);
+    display:flex; align-items:center; justify-content:center; font-size:20px; color:#fff;
+  }
+  .sidebar-brand .name{font-weight:800; font-size:19px; line-height:1;}
+  .sidebar-brand .desc{font-size:9.5px; opacity:.75; line-height:1.3; margin-top:3px;}
+  .nav-menu{list-style:none; padding:0; margin:8px 0; flex:1;}
+  .nav-menu li{margin-bottom:4px;}
+  .nav-menu a{
+    display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px;
+    color:#e5f5ea; text-decoration:none; font-size:14.5px; font-weight:500; transition:.15s;
+  }
+  .nav-menu a i{font-size:17px; width:18px; text-align:center;}
+  .nav-menu a:hover{background:rgba(255,255,255,.08); color:#fff;}
+  .nav-menu a.active{background:var(--sp-green-600); color:#fff; font-weight:600;}
+  .sidebar-footer-card{
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:14px;
+    padding:18px 14px; text-align:center; margin-top:auto;
+  }
+  .sidebar-footer-card .name{font-weight:800; font-size:16px;}
+  .sidebar-footer-card .tag{font-size:11px; opacity:.8; margin-top:2px;}
+  .sidebar-copy{text-align:center; font-size:10.5px; opacity:.55; margin-top:14px;}
+
+  .main-wrapper{flex:1; display:flex; flex-direction:column; min-width:0;}
+  .topbar{
+    background:#fff; border-bottom:1px solid var(--sp-border); padding:14px 26px;
+    display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10;
+  }
+  .topbar .app-title{font-weight:800; color:var(--sp-green-800); font-size:20px; margin:0;}
+  .topbar .app-sub{font-size:11.5px; color:var(--sp-muted); margin:0;}
+  .topbar .user-box{display:flex; align-items:center; gap:10px; cursor:pointer;}
+  .topbar .avatar{width:38px; height:38px; border-radius:50%; background:var(--sp-green-50); display:flex; align-items:center; justify-content:center; color:var(--sp-green-700); font-size:18px;}
+  .status-dot{width:7px; height:7px; border-radius:50%; background:var(--sp-green-600); display:inline-block; margin-right:4px;}
+
+  .content-area{padding:22px 26px 40px;}
+  .page-section{display:none;}
+  .page-section.active{display:block;}
+
+  .sp-card{background:#fff; border:1px solid var(--sp-border); border-radius:16px; padding:20px 22px;}
+  .sp-card h5{font-weight:700; font-size:16px; margin-bottom:16px; color:var(--sp-text);}
+
+  .info-row{display:flex; gap:12px; margin-bottom:16px;}
+  .info-row .info-icon{
+    width:36px; height:36px; border-radius:9px; background:var(--sp-green-50); color:var(--sp-green-700);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .info-row .label{font-size:12px; color:var(--sp-muted); margin-bottom:2px;}
+  .info-row .value{font-size:14.5px; font-weight:600; color:var(--sp-text);}
+
+  .stat-card{border-radius:14px; padding:18px 18px; border:1px solid var(--sp-border); display:flex; gap:14px; align-items:center;}
+  .stat-card .icon{width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;}
+  .stat-card .num{font-size:26px; font-weight:800; line-height:1;}
+  .stat-card .lbl{font-size:12.5px; color:var(--sp-muted); margin-top:2px;}
+  .stat-blue{background:#eff6ff;} .stat-blue .icon{background:#dbeafe; color:var(--sp-blue);}
+  .stat-green{background:#f0fdf4;} .stat-green .icon{background:#dcfce7; color:var(--sp-green-600);}
+  .stat-orange{background:#fffbeb;} .stat-orange .icon{background:#fef3c7; color:var(--sp-orange);}
+  .stat-purple{background:#f5f3ff;} .stat-purple .icon{background:#ede9fe; color:var(--sp-purple);}
+
+  .btn-scan-big{
+    background:var(--sp-green-700); color:#fff; border:none; border-radius:14px;
+    padding:16px 24px; font-weight:700; font-size:16px; display:flex; align-items:center; justify-content:center;
+    gap:10px; width:100%; max-width:340px;
+  }
+  .btn-scan-big:hover{background:var(--sp-green-800); color:#fff;}
+  .btn-scan-big small{display:block; font-weight:400; font-size:11.5px; opacity:.85;}
+
+  .notice-bar{background:var(--sp-green-50); border:1px solid #bbf7d0; color:var(--sp-green-800); border-radius:10px; padding:10px 16px; font-size:13px;}
+
+  .table thead th{font-size:12.5px; text-transform:uppercase; color:var(--sp-muted); border-bottom:2px solid var(--sp-border); font-weight:600;}
+  .table td{vertical-align:middle; font-size:14px;}
+  .badge-status-aktif{background:#dcfce7; color:var(--sp-green-700); font-weight:600;}
+  .badge-status-nonaktif{background:#fee2e2; color:#b91c1c; font-weight:600;}
+
+  .btn-sp-green{background:var(--sp-green-700); border:none; color:#fff; font-weight:600; border-radius:9px; padding:9px 18px;}
+  .btn-sp-green:hover{background:var(--sp-green-800); color:#fff;}
+  .btn-sp-outline{border:1px solid var(--sp-border); background:#fff; border-radius:9px; padding:9px 16px; font-weight:500;}
+
+  .avatar-sm{width:36px; height:36px; border-radius:50%; object-fit:cover; background:#e5e7eb;}
+  .avatar-lg{width:110px; height:110px; border-radius:50%; object-fit:cover; background:#e5e7eb; border:4px solid var(--sp-green-50);}
+
+  /* ---------- SCANNER ---------- */
+  .scanner-wrapper{background:#0b1f14; border-radius:20px; padding:26px; color:#fff; min-height:70vh;}
+  #qrReader{width:100%; max-width:420px; margin:0 auto; border-radius:16px; overflow:hidden; border:3px solid var(--sp-green-600);}
+  .scan-side-card{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:16px;}
+  .gps-status{display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; font-size:13px; font-weight:600;}
+  .gps-valid{background:rgba(34,197,94,.15); color:#4ade80;}
+  .gps-invalid{background:rgba(239,68,68,.15); color:#f87171;}
+  .recent-item{display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.08); font-size:13px;}
+
+  /* ---------- POPUP ---------- */
+  .popup-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center;
+    z-index:2000; opacity:0; pointer-events:none; transition:opacity .2s;
+  }
+  .popup-overlay.show{opacity:1; pointer-events:auto;}
+  .popup-card{background:#fff; border-radius:22px; padding:34px 30px; text-align:center; width:340px; box-shadow:0 20px 60px rgba(0,0,0,.35); transform:scale(.92); transition:transform .2s;}
+  .popup-overlay.show .popup-card{transform:scale(1);}
+  .popup-card.error .popup-icon{background:#fee2e2; color:#dc2626;}
+  .popup-icon{width:70px; height:70px; border-radius:50%; background:#dcfce7; color:var(--sp-green-600); display:flex; align-items:center; justify-content:center; font-size:34px; margin:0 auto 14px;}
+  .popup-card .p-nama{font-weight:800; font-size:19px; margin:10px 0 2px;}
+  .popup-card .p-sekolah{color:var(--sp-muted); font-size:13px;}
+  .popup-card .p-status{margin-top:12px; display:inline-block; padding:5px 16px; border-radius:20px; font-weight:700; font-size:12.5px; background:var(--sp-green-600); color:#fff;}
+
+  @media(max-width:900px){
+    .sidebar{position:fixed; left:-260px; z-index:1000; transition:.2s;}
+    .sidebar.open{left:0;}
+    .main-wrapper{width:100%;}
+  }
+</style>
+</head>
+<body>
+<div id="loginView">
+  <div class="login-card">
+    <div class="brand-icon"><i class="bi bi-person-running"></i></div>
+    <h3>SIPELLO</h3>
+    <p class="subtitle">Sistem Informasi Presensi Elektronik<br>MGMP Penjasorkes SMP Swasta Bondowoso</p>
+
+    <div id="loginError" class="alert alert-danger py-2 small"></div>
+
+    <form id="loginForm" onsubmit="return false;">
+      <div class="mb-3 text-start">
+        <label class="form-label small fw-semibold">Username</label>
+        <input type="text" class="form-control" id="loginUsername" placeholder="admin" required>
+      </div>
+      <div class="mb-3 text-start">
+        <label class="form-label small fw-semibold">Password</label>
+        <input type="password" class="form-control" id="loginPassword" placeholder="••••••••" required>
+      </div>
+      <button class="btn btn-sp-primary w-100" id="loginBtn" onclick="handleLogin()">Masuk</button>
+    </form>
+    <p class="mt-4 mb-0" style="font-size:11px;color:#9ca3af;">Setiap Keringat, Tercatat. &copy; 2025 SIPELLO. By Edoy D Hagane</p>
+  </div>
+</div>
+
+<div id="appShell" class="d-none">
+<div class="sidebar" id="sidebarEl">
+  <div class="sidebar-brand">
+    <div class="icon-wrap"><i class="bi bi-person-running"></i></div>
+    <div>
+      <div class="name">SIPELLO</div>
+      <div class="desc">Sistem Informasi Presensi Elektronik<br>MGMP Penjasorkes SMP Swasta<br>Bondowoso</div>
+    </div>
+  </div>
+
+  <ul class="nav-menu">
+    <li><a href="#" class="nav-link-item active" data-page="Dashboard"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a></li>
+    <li><a href="#" class="nav-link-item" data-page="DataGuru"><i class="bi bi-people-fill"></i> Data Guru</a></li>
+    <li><a href="#" class="nav-link-item" data-page="DataSekolah"><i class="bi bi-building"></i> Data Sekolah</a></li>
+    <li><a href="#" class="nav-link-item" data-page="KegiatanMGMP"><i class="bi bi-calendar-event-fill"></i> Kegiatan MGMP</a></li>
+    <li><a href="#" class="nav-link-item" data-page="ScanQR"><i class="bi bi-qr-code-scan"></i> Scan QR</a></li>
+    <li><a href="#" class="nav-link-item" data-page="Rekap"><i class="bi bi-bar-chart-fill"></i> Rekap Kehadiran</a></li>
+    <li><a href="#" class="nav-link-item" data-page="Pengaturan"><i class="bi bi-gear-fill"></i> Pengaturan</a></li>
+    <li><a href="#" onclick="handleLogout(); return false;"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+  </ul>
+
+  <div class="sidebar-footer-card">
+    <div class="name">SIPELLO</div>
+    <div class="tag">Setiap Keringat, Tercatat.</div>
+  </div>
+  <div class="sidebar-copy">&copy; 2025 SIPELLO. By Edoy D Hagane</div>
+</div>
+  <div class="main-wrapper">
+<div class="topbar">
+  <div class="d-flex align-items-center gap-3">
+    <button class="btn btn-sm btn-light d-md-none" onclick="document.getElementById('sidebarEl').classList.toggle('open')">
+      <i class="bi bi-list"></i>
+    </button>
+    <div>
+      <p class="app-title mb-0" style="display:flex;align-items:center;gap:8px;">
+        <i class="bi bi-person-running" style="color:var(--sp-green-600);"></i> SIPELLO
+      </p>
+      <p class="app-sub">Sistem Informasi Presensi Elektronik &middot; MGMP Penjasorkes SMP Swasta Bondowoso</p>
+    </div>
+  </div>
+  <div class="user-box">
+    <div class="text-end d-none d-sm-block">
+      <div style="font-size:13.5px;font-weight:600;" id="topbarUserName">Pengurus MGMP</div>
+      <div style="font-size:11.5px;color:var(--sp-muted);"><span class="status-dot"></span>Online</div>
+    </div>
+    <div class="avatar"><i class="bi bi-person-fill"></i></div>
+    <i class="bi bi-chevron-down" style="font-size:11px;color:var(--sp-muted);"></i>
+  </div>
+</div>
+    <div class="content-area" id="contentArea">
+<div class="page-section active" id="page-Dashboard">
+
+  <div class="sp-card mb-4">
+    <h5><i class="bi bi-info-circle-fill text-success me-1"></i> Informasi Kegiatan Terpilih</h5>
+    <div class="row">
+      <div class="col-lg-6">
+        <div class="info-row">
+          <div class="info-icon"><i class="bi bi-calendar-event"></i></div>
+          <div>
+            <div class="label">Nama Kegiatan</div>
+            <div class="value" id="dashNamaKegiatan">-</div>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon"><i class="bi bi-lightbulb"></i></div>
+          <div>
+            <div class="label">Tema</div>
+            <div class="value" id="dashTema">-</div>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon"><i class="bi bi-calendar3"></i></div>
+          <div>
+            <div class="label">Tanggal</div>
+            <div class="value" id="dashTanggal">-</div>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon"><i class="bi bi-clock"></i></div>
+          <div>
+            <div class="label">Waktu</div>
+            <div class="value" id="dashWaktu">-</div>
+          </div>
+        </div>
+        <div class="info-row mb-0">
+          <div class="info-icon"><i class="bi bi-geo-alt-fill"></i></div>
+          <div>
+            <div class="label">Lokasi</div>
+            <div class="value" id="dashLokasi">-</div>
+            <div style="font-size:12.5px;color:var(--sp-muted);" id="dashAlamat"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 mt-3 mt-lg-0">
+        <div style="border:1px solid var(--sp-border); border-radius:14px; overflow:hidden;">
+          <iframe id="dashMapFrame" width="100%" height="220" style="border:0;" loading="lazy"></iframe>
+          <div class="d-flex justify-content-between px-3 py-2" style="border-top:1px solid var(--sp-border); font-size:12.5px;">
+            <div><span class="text-muted">Koordinat</span><br><span id="dashKoordinat">-</span></div>
+            <div class="text-end"><span class="text-muted">Radius Absensi</span><br><span id="dashRadius">-</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="stat-card stat-blue"><div class="icon"><i class="bi bi-people-fill"></i></div>
+        <div><div class="num" id="statTotalGuru">0</div><div class="lbl">Guru Terdaftar</div></div></div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card stat-green"><div class="icon"><i class="bi bi-person-check-fill"></i></div>
+        <div><div class="num" id="statHadir">0</div><div class="lbl">Sudah Hadir</div></div></div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card stat-orange"><div class="icon"><i class="bi bi-clock-fill"></i></div>
+        <div><div class="num" id="statBelumHadir">0</div><div class="lbl">Belum Hadir</div></div></div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card stat-purple"><div class="icon"><i class="bi bi-pie-chart-fill"></i></div>
+        <div><div class="num" id="statPersentase">0%</div><div class="lbl">Persentase Kehadiran</div></div></div>
+    </div>
+  </div>
+
+  <div class="sp-card mb-3">
+    <div class="row align-items-center">
+      <div class="col-md-3 text-center mb-3 mb-md-0">
+        <i class="bi bi-person-badge" style="font-size:70px;color:var(--sp-green-600);"></i>
+      </div>
+      <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+        <h5 class="mb-1">Siap untuk melakukan absensi?</h5>
+        <p class="text-muted mb-0" style="font-size:13.5px;">
+          Pastikan kegiatan sudah benar dan Anda berada di lokasi kegiatan.<br>
+          Tekan tombol di bawah untuk memulai scan QR Code guru.
+        </p>
+      </div>
+      <div class="col-md-3 text-center text-md-end">
+        <button class="btn btn-scan-big" onclick="goToPage('ScanQR')">
+          <i class="bi bi-qr-code-scan" style="font-size:22px;"></i>
+          <span class="text-start">MULAI SCAN QR<small>Klik untuk membuka kamera</small></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="notice-bar">
+    <i class="bi bi-info-circle me-1"></i> Pastikan koneksi internet aktif dan izinkan akses lokasi perangkat untuk akurasi absensi.
+  </div>
+</div>
+<div class="page-section" id="page-DataGuru">
+  <div class="sp-card">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <h5 class="mb-0"><i class="bi bi-people-fill text-success me-1"></i> Data Guru</h5>
+      <button class="btn btn-sp-green" data-bs-toggle="modal" data-bs-target="#modalGuru" onclick="openGuruModal()">
+        <i class="bi bi-plus-lg"></i> Tambah Guru
+      </button>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead><tr>
+          <th>Foto</th><th>ID</th><th>Nama</th><th>L/P</th><th>Sekolah</th><th>Kecamatan</th><th>No. HP</th><th>Status</th><th>QR</th><th>Aksi</th>
+        </tr></thead>
+        <tbody id="tblGuruBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tambah/Edit Guru -->
+<div class="modal fade" id="modalGuru" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Data Guru</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="guruID">
+        <div class="mb-2"><label class="form-label small">Nama</label><input class="form-control" id="guruNama"></div>
+        <div class="mb-2"><label class="form-label small">Jenis Kelamin</label>
+          <select class="form-select" id="guruJK"><option>Laki-laki</option><option>Perempuan</option></select>
+        </div>
+        <div class="mb-2"><label class="form-label small">Sekolah</label><select class="form-select" id="guruSekolah"></select></div>
+        <div class="mb-2"><label class="form-label small">Kecamatan</label><input class="form-control" id="guruKecamatan"></div>
+        <div class="mb-2"><label class="form-label small">Nomor HP</label><input class="form-control" id="guruHP"></div>
+        <div class="mb-2"><label class="form-label small">URL Foto (opsional)</label><input class="form-control" id="guruFoto" placeholder="https://..."></div>
+        <div class="mb-2"><label class="form-label small">Status</label>
+          <select class="form-select" id="guruStatus"><option>Aktif</option><option>Nonaktif</option></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sp-outline" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-sp-green" onclick="saveGuruForm()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal QR -->
+<div class="modal fade" id="modalQR" tabindex="-1">
+  <div class="modal-dialog modal-sm"><div class="modal-content text-center p-3">
+    <div class="modal-header border-0"><h6 class="modal-title">QR Code Guru</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><img id="qrImgPreview" src="" style="width:220px;height:220px;"><div id="qrNamaPreview" class="fw-bold mt-2"></div></div>
+  </div></div>
+</div>
+<div class="page-section" id="page-DataSekolah">
+  <div class="sp-card">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <h5 class="mb-0"><i class="bi bi-building text-success me-1"></i> Data Sekolah</h5>
+      <button class="btn btn-sp-green" data-bs-toggle="modal" data-bs-target="#modalSekolah" onclick="openSekolahModal()">
+        <i class="bi bi-plus-lg"></i> Tambah Sekolah
+      </button>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead><tr><th>ID</th><th>Nama Sekolah</th><th>Kecamatan</th><th>Alamat</th><th>Aksi</th></tr></thead>
+        <tbody id="tblSekolahBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalSekolah" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Data Sekolah</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="sekolahID">
+      <div class="mb-2"><label class="form-label small">Nama Sekolah</label><input class="form-control" id="sekolahNama"></div>
+      <div class="mb-2"><label class="form-label small">Kecamatan</label><input class="form-control" id="sekolahKecamatan"></div>
+      <div class="mb-2"><label class="form-label small">Alamat</label><textarea class="form-control" id="sekolahAlamat"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sp-outline" data-bs-dismiss="modal">Batal</button>
+      <button class="btn btn-sp-green" onclick="saveSekolahForm()">Simpan</button>
+    </div>
+  </div></div>
+</div>
+<div class="page-section" id="page-KegiatanMGMP">
+  <div class="sp-card">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <h5 class="mb-0"><i class="bi bi-calendar-event-fill text-success me-1"></i> Kegiatan MGMP</h5>
+      <button class="btn btn-sp-green" data-bs-toggle="modal" data-bs-target="#modalKegiatan" onclick="openKegiatanModal()">
+        <i class="bi bi-plus-lg"></i> Buat Kegiatan
+      </button>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead><tr><th>Nama</th><th>Tema</th><th>Tanggal</th><th>Jam</th><th>Lokasi</th><th>Radius</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="tblKegiatanBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalKegiatan" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Kegiatan MGMP</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="kegiatanID">
+      <div class="row">
+        <div class="col-md-6 mb-2"><label class="form-label small">Nama Kegiatan</label><input class="form-control" id="kgNama"></div>
+        <div class="col-md-6 mb-2"><label class="form-label small">Tema</label><input class="form-control" id="kgTema"></div>
+        <div class="col-md-4 mb-2"><label class="form-label small">Tanggal</label><input type="date" class="form-control" id="kgTanggal"></div>
+        <div class="col-md-4 mb-2"><label class="form-label small">Jam Mulai</label><input type="time" class="form-control" id="kgJamMulai"></div>
+        <div class="col-md-4 mb-2"><label class="form-label small">Jam Selesai</label><input type="time" class="form-control" id="kgJamSelesai"></div>
+        <div class="col-md-6 mb-2"><label class="form-label small">Nama Lokasi</label><input class="form-control" id="kgLokasi" placeholder="SMP Islam Al-Ikhlas Bondowoso"></div>
+        <div class="col-md-6 mb-2"><label class="form-label small">Alamat</label><input class="form-control" id="kgAlamat"></div>
+        <div class="col-md-4 mb-2"><label class="form-label small">Latitude</label><input class="form-control" id="kgLat" placeholder="-7.918123"></div>
+        <div class="col-md-4 mb-2"><label class="form-label small">Longitude</label><input class="form-control" id="kgLng" placeholder="113.817456"></div>
+        <div class="col-md-4 mb-2"><label class="form-label small">Radius (meter)</label><input type="number" class="form-control" id="kgRadius" value="100"></div>
+        <div class="col-12 mb-2">
+          <button type="button" class="btn btn-sm btn-sp-outline" onclick="useCurrentLocationForKegiatan()">
+            <i class="bi bi-geo-alt-fill"></i> Gunakan Lokasi Saat Ini (GPS HP)
+          </button>
+          <span id="kgLocStatus" class="ms-2" style="font-size:12.5px;color:var(--sp-muted);"></span>
+        </div>
+        <div class="col-md-6 mb-2"><label class="form-label small">Status</label>
+          <select class="form-select" id="kgStatus"><option>Aktif</option><option>Selesai</option><option>Draft</option></select>
+        </div>
+      </div>
+      <small class="text-muted"><i class="bi bi-info-circle"></i> Gunakan Google Maps untuk mengambil koordinat Latitude/Longitude lokasi kegiatan.</small>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sp-outline" data-bs-dismiss="modal">Batal</button>
+      <button class="btn btn-sp-green" onclick="saveKegiatanForm()">Simpan</button>
+    </div>
+  </div></div>
+</div>
+<div class="page-section" id="page-ScanQR">
+  <div class="scanner-wrapper">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h5 class="text-white mb-0"><i class="bi bi-qr-code-scan me-1"></i> Mode Scanner</h5>
+        <small class="text-white-50" id="scanKegiatanNama">Memuat kegiatan...</small>
+      </div>
+      <button class="btn btn-sm btn-outline-light" onclick="goToPage('Dashboard')"><i class="bi bi-x-lg"></i> Tutup</button>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-lg-8">
+        <div id="qrReader"></div>
+        <div class="text-center mt-3">
+          <div class="gps-status gps-invalid d-inline-flex" id="gpsStatusBox">
+            <i class="bi bi-geo-alt"></i> <span id="gpsStatusText">Memeriksa lokasi GPS...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <div class="scan-side-card text-center">
+              <div style="font-size:22px;font-weight:800;color:#4ade80;" id="scanSudahHadir">0</div>
+              <div style="font-size:11.5px;opacity:.7;">Sudah Hadir</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="scan-side-card text-center">
+              <div style="font-size:22px;font-weight:800;color:#facc15;" id="scanBelumHadir">0</div>
+              <div style="font-size:11.5px;opacity:.7;">Belum Hadir</div>
+            </div>
+          </div>
+        </div>
+        <div class="scan-side-card mb-3 text-center">
+          <div style="font-size:22px;font-weight:800;" id="scanPersentase">0%</div>
+          <div style="font-size:11.5px;opacity:.7;">Persentase Kehadiran</div>
+        </div>
+        <div class="scan-side-card">
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px;opacity:.85;">Daftar Kehadiran Terakhir</div>
+          <div id="recentList"><div class="text-white-50" style="font-size:12.5px;">Belum ada data.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="page-section" id="page-Rekap">
+  <div class="sp-card">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <h5 class="mb-0"><i class="bi bi-bar-chart-fill text-success me-1"></i> Rekap Kehadiran</h5>
+      <button class="btn btn-sp-green" onclick="exportRekapExcel()"><i class="bi bi-file-earmark-excel"></i> Export Excel</button>
+    </div>
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-3">
+        <select class="form-select" id="filterKegiatan"><option value="">Semua Kegiatan</option></select>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" id="filterBulan">
+          <option value="">Semua Bulan</option>
+          <option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option>
+          <option value="4">April</option><option value="5">Mei</option><option value="6">Juni</option>
+          <option value="7">Juli</option><option value="8">Agustus</option><option value="9">September</option>
+          <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" id="filterTahun"></select>
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-sp-outline w-100" onclick="loadRekap()"><i class="bi bi-funnel"></i> Terapkan Filter</button>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle" id="tblRekap">
+        <thead><tr><th>Tanggal</th><th>Jam</th><th>Nama Guru</th><th>Sekolah</th><th>Kegiatan</th><th>Status</th></tr></thead>
+        <tbody id="tblRekapBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="page-section" id="page-Pengaturan">
+  <div class="sp-card" style="max-width:600px;">
+    <h5><i class="bi bi-gear-fill text-success me-1"></i> Pengaturan Aplikasi</h5>
+    <div class="mb-3"><label class="form-label small">Nama MGMP</label><input class="form-control" id="setNamaMGMP"></div>
+    <div class="mb-3"><label class="form-label small">Tagline</label><input class="form-control" id="setTagline"></div>
+    <div class="mb-3"><label class="form-label small">URL Logo</label><input class="form-control" id="setLogo" placeholder="https://..."></div>
+    <div class="mb-3">
+      <label class="form-label small">Radius GPS Default (meter): <span id="radiusVal">100</span></label>
+      <input type="range" class="form-range" id="setRadius" min="20" max="500" step="10">
+    </div>
+    <div class="mb-3">
+      <label class="form-label small">Durasi Popup (detik): <span id="durasiVal">2</span></label>
+      <input type="range" class="form-range" id="setDurasi" min="1" max="6" step="1">
+    </div>
+    <div class="mb-3">
+      <label class="form-label small">Volume Suara (%): <span id="volVal">80</span></label>
+      <input type="range" class="form-range" id="setVolume" min="0" max="100" step="10">
+    </div>
+    <div class="mb-4">
+      <label class="form-label small d-block">Tema Warna</label>
+      <select class="form-select" id="setTema"><option>Hijau</option><option>Biru</option><option>Oranye</option></select>
+    </div>
+    <button class="btn btn-sp-green" onclick="savePengaturanForm()"><i class="bi bi-check-lg"></i> Simpan Pengaturan</button>
+  </div>
+</div>
+    </div>
+  </div>
+</div>
+<div class="popup-overlay" id="popupOverlay">
+  <div class="popup-card" id="popupCard">
+    <div class="popup-icon" id="popupIcon"><i class="bi bi-check-lg"></i></div>
+    <img id="popupFoto" src="" style="width:70px;height:70px;border-radius:50%;object-fit:cover;display:none;margin:0 auto;">
+    <div class="p-nama" id="popupNama">-</div>
+    <div class="p-sekolah" id="popupSekolah">-</div>
+    <div class="text-muted mt-1" style="font-size:12px;" id="popupJam">-</div>
+    <div class="p-status" id="popupStatus">HADIR</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+/* =========================================================
+ *  KONFIGURASI - GANTI DENGAN LINK /exec APPS SCRIPT KAMU
+ * ========================================================= */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSZQnW8sDQnRmxVnn-xerpUXEWeCYMPpA5k6TytaUAwKL4ixn51AnrE8EozOH6g9Gk/exec';
+
+/* =========================================================
+ *  API HELPER (menggantikan google.script.run)
+ * ========================================================= */
+function callAPI(action, params) {
+  return fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // hindari CORS preflight
+    body: JSON.stringify({ action: action, params: params || [] })
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (res) {
+      if (res.status === 'ERROR') throw new Error(res.message);
+      return res.data;
+    });
+}
+
+/* =========================================================
+ *  STATE
+ * ========================================================= */
+let SESSION_TOKEN = null;
+let CURRENT_USER = null;
+let ALL_SEKOLAH = [];
+let ALL_GURU = [];
+let ALL_KEGIATAN = [];
+let html5QrCode = null;
+let currentLat = null, currentLng = null;
+let scannerRunning = false;
+let scanLock = false;
+let popupDuration = 2;
+
+/* =========================================================
+ *  AUTH
+ * ========================================================= */
+function handleLogin() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+  const errBox = document.getElementById('loginError');
+  errBox.style.display = 'none';
+  if (!username || !password) return;
+
+  document.getElementById('loginBtn').innerText = 'Memproses...';
+  callAPI('login', [username, password])
+    .then(function (res) {
+      document.getElementById('loginBtn').innerText = 'Masuk';
+      if (!res.success) {
+        errBox.innerText = res.message;
+        errBox.style.display = 'block';
+        return;
+      }
+      SESSION_TOKEN = res.token;
+      CURRENT_USER = res.user;
+      document.getElementById('topbarUserName').innerText = res.user.nama;
+      document.getElementById('loginView').classList.add('d-none');
+      document.getElementById('appShell').classList.remove('d-none');
+      initApp();
+    })
+    .catch(function (err) {
+      document.getElementById('loginBtn').innerText = 'Masuk';
+      errBox.innerText = 'Terjadi kesalahan: ' + err.message;
+      errBox.style.display = 'block';
+    });
+}
+
+function handleLogout() {
+  if (scannerRunning) stopScanner();
+  SESSION_TOKEN = null;
+  document.getElementById('appShell').classList.add('d-none');
+  document.getElementById('loginView').classList.remove('d-none');
+}
+
+/* =========================================================
+ *  NAVIGATION (SPA)
+ * ========================================================= */
+function goToPage(pageName) {
+  document.querySelectorAll('.page-section').forEach(function (el) { el.classList.remove('active'); });
+  document.getElementById('page-' + pageName).classList.add('active');
+  document.querySelectorAll('.nav-link-item').forEach(function (el) { el.classList.remove('active'); });
+  const navEl = document.querySelector('.nav-link-item[data-page="' + pageName + '"]');
+  if (navEl) navEl.classList.add('active');
+  document.getElementById('sidebarEl').classList.remove('open');
+
+  if (pageName === 'Dashboard') loadDashboard();
+  if (pageName === 'DataGuru') loadDataGuru();
+  if (pageName === 'DataSekolah') loadDataSekolah();
+  if (pageName === 'KegiatanMGMP') loadDataKegiatan();
+  if (pageName === 'ScanQR') startScannerPage();
+  if (pageName === 'Rekap') { populateRekapFilters(); loadRekap(); }
+  if (pageName === 'Pengaturan') loadPengaturan();
+
+  if (pageName !== 'ScanQR' && scannerRunning) stopScanner();
+}
+
+document.addEventListener('click', function (e) {
+  const link = e.target.closest('.nav-link-item');
+  if (link) {
+    e.preventDefault();
+    goToPage(link.getAttribute('data-page'));
+  }
+});
+
+function initApp() {
+  loadDashboard();
+  refreshMasterData();
+}
+
+function refreshMasterData() {
+  callAPI('getSekolahList').then(function (list) { ALL_SEKOLAH = list; });
+  callAPI('getGuruList').then(function (list) { ALL_GURU = list; });
+  callAPI('getKegiatanList').then(function (list) { ALL_KEGIATAN = list; });
+}
+
+/* =========================================================
+ *  DASHBOARD
+ * ========================================================= */
+function loadDashboard() {
+  callAPI('getDashboardData').then(function (data) {
+    const k = data.kegiatan;
+    if (k) {
+      document.getElementById('dashNamaKegiatan').innerText = k.Nama || '-';
+      document.getElementById('dashTema').innerText = k.Tema || '-';
+      document.getElementById('dashTanggal').innerText = formatTanggalIndo(k.Tanggal);
+      document.getElementById('dashWaktu').innerText = (k.JamMulai || '-') + ' - ' + (k.JamSelesai || 'Selesai');
+      document.getElementById('dashLokasi').innerText = k.Lokasi || '-';
+      document.getElementById('dashAlamat').innerText = k.Alamat || '';
+      document.getElementById('dashKoordinat').innerText = (k.Latitude || '-') + ', ' + (k.Longitude || '-');
+      document.getElementById('dashRadius').innerText = (k.Radius || 100) + ' Meter';
+      if (k.Latitude && k.Longitude) {
+        document.getElementById('dashMapFrame').src = 'https://maps.google.com/maps?q=' + k.Latitude + ',' + k.Longitude + '&z=16&output=embed';
+      }
+    } else {
+      document.getElementById('dashNamaKegiatan').innerText = 'Belum ada kegiatan aktif';
+    }
+    document.getElementById('statTotalGuru').innerText = data.stats.totalGuru;
+    document.getElementById('statHadir').innerText = data.stats.hadir;
+    document.getElementById('statBelumHadir').innerText = data.stats.belumHadir;
+    document.getElementById('statPersentase').innerText = data.stats.persentase + '%';
+  });
+}
+
+function formatTanggalIndo(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr;
+  const hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  return hari[d.getDay()] + ', ' + d.getDate() + ' ' + bulan[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+/* =========================================================
+ *  DATA GURU
+ * ========================================================= */
+function loadDataGuru() {
+  callAPI('getGuruList').then(function (list) {
+    ALL_GURU = list;
+    const body = document.getElementById('tblGuruBody');
+    body.innerHTML = list.map(function (g) {
+      const badge = g.Status === 'Aktif' ? 'badge-status-aktif' : 'badge-status-nonaktif';
+      return '<tr>' +
+        '<td><img class="avatar-sm" src="' + (g.FotoURL || 'https://ui-avatars.com/api/?background=166534&color=fff&name=' + encodeURIComponent(g.Nama)) + '"></td>' +
+        '<td>' + g.ID + '</td><td>' + g.Nama + '</td><td>' + (g.JenisKelamin === 'Laki-laki' ? 'L' : 'P') + '</td>' +
+        '<td>' + g.Sekolah + '</td><td>' + g.Kecamatan + '</td><td>' + g.NomorHP + '</td>' +
+        '<td><span class="badge ' + badge + '">' + g.Status + '</span></td>' +
+        '<td><button class="btn btn-sm btn-sp-outline" onclick="showQR(\'' + g.QRUrl + '\',\'' + g.Nama.replace(/'/g,"") + '\')"><i class="bi bi-qr-code"></i></button></td>' +
+        '<td>' +
+          '<button class="btn btn-sm btn-sp-outline me-1" onclick=\'editGuru(' + JSON.stringify(g) + ')\'><i class="bi bi-pencil"></i></button>' +
+          '<button class="btn btn-sm btn-outline-danger" onclick="removeGuru(\'' + g.ID + '\')"><i class="bi bi-trash"></i></button>' +
+        '</td></tr>';
+    }).join('');
+  });
+
+  callAPI('getSekolahList').then(function (list) {
+    ALL_SEKOLAH = list;
+    document.getElementById('guruSekolah').innerHTML = list.map(function (s) { return '<option>' + s.NamaSekolah + '</option>'; }).join('');
+  });
+}
+
+function openGuruModal() {
+  document.getElementById('guruID').value = '';
+  document.getElementById('guruNama').value = '';
+  document.getElementById('guruJK').value = 'Laki-laki';
+  document.getElementById('guruKecamatan').value = '';
+  document.getElementById('guruHP').value = '';
+  document.getElementById('guruFoto').value = '';
+  document.getElementById('guruStatus').value = 'Aktif';
+}
+
+function editGuru(g) {
+  document.getElementById('guruID').value = g.ID;
+  document.getElementById('guruNama').value = g.Nama;
+  document.getElementById('guruJK').value = g.JenisKelamin;
+  document.getElementById('guruSekolah').value = g.Sekolah;
+  document.getElementById('guruKecamatan').value = g.Kecamatan;
+  document.getElementById('guruHP').value = g.NomorHP;
+  document.getElementById('guruFoto').value = g.FotoURL;
+  document.getElementById('guruStatus').value = g.Status;
+  new bootstrap.Modal(document.getElementById('modalGuru')).show();
+}
+
+function saveGuruForm() {
+  const data = {
+    ID: document.getElementById('guruID').value,
+    Nama: document.getElementById('guruNama').value,
+    JenisKelamin: document.getElementById('guruJK').value,
+    Sekolah: document.getElementById('guruSekolah').value,
+    Kecamatan: document.getElementById('guruKecamatan').value,
+    NomorHP: document.getElementById('guruHP').value,
+    FotoURL: document.getElementById('guruFoto').value,
+    Status: document.getElementById('guruStatus').value
+  };
+  if (!data.Nama) { alert('Nama guru wajib diisi.'); return; }
+  callAPI('saveGuru', [data]).then(function () {
+    bootstrap.Modal.getInstance(document.getElementById('modalGuru')).hide();
+    loadDataGuru();
+  });
+}
+
+function removeGuru(id) {
+  if (!confirm('Hapus data guru ini?')) return;
+  callAPI('deleteGuru', [id]).then(function () { loadDataGuru(); });
+}
+
+function showQR(url, nama) {
+  document.getElementById('qrImgPreview').src = url;
+  document.getElementById('qrNamaPreview').innerText = nama;
+  new bootstrap.Modal(document.getElementById('modalQR')).show();
+}
+
+/* =========================================================
+ *  DATA SEKOLAH
+ * ========================================================= */
+function loadDataSekolah() {
+  callAPI('getSekolahList').then(function (list) {
+    ALL_SEKOLAH = list;
+    document.getElementById('tblSekolahBody').innerHTML = list.map(function (s) {
+      return '<tr><td>' + s.ID + '</td><td>' + s.NamaSekolah + '</td><td>' + s.Kecamatan + '</td><td>' + s.Alamat + '</td>' +
+        '<td><button class="btn btn-sm btn-sp-outline me-1" onclick=\'editSekolah(' + JSON.stringify(s) + ')\'><i class="bi bi-pencil"></i></button>' +
+        '<button class="btn btn-sm btn-outline-danger" onclick="removeSekolah(\'' + s.ID + '\')"><i class="bi bi-trash"></i></button></td></tr>';
+    }).join('');
+  });
+}
+
+function openSekolahModal() {
+  document.getElementById('sekolahID').value = '';
+  document.getElementById('sekolahNama').value = '';
+  document.getElementById('sekolahKecamatan').value = '';
+  document.getElementById('sekolahAlamat').value = '';
+}
+
+function editSekolah(s) {
+  document.getElementById('sekolahID').value = s.ID;
+  document.getElementById('sekolahNama').value = s.NamaSekolah;
+  document.getElementById('sekolahKecamatan').value = s.Kecamatan;
+  document.getElementById('sekolahAlamat').value = s.Alamat;
+  new bootstrap.Modal(document.getElementById('modalSekolah')).show();
+}
+
+function saveSekolahForm() {
+  const data = {
+    ID: document.getElementById('sekolahID').value,
+    NamaSekolah: document.getElementById('sekolahNama').value,
+    Kecamatan: document.getElementById('sekolahKecamatan').value,
+    Alamat: document.getElementById('sekolahAlamat').value
+  };
+  if (!data.NamaSekolah) { alert('Nama sekolah wajib diisi.'); return; }
+  callAPI('saveSekolah', [data]).then(function () {
+    bootstrap.Modal.getInstance(document.getElementById('modalSekolah')).hide();
+    loadDataSekolah();
+  });
+}
+
+function removeSekolah(id) {
+  if (!confirm('Hapus data sekolah ini?')) return;
+  callAPI('deleteSekolah', [id]).then(function () { loadDataSekolah(); });
+}
+
+/* =========================================================
+ *  KEGIATAN MGMP
+ * ========================================================= */
+function loadDataKegiatan() {
+  callAPI('getKegiatanList').then(function (list) {
+    ALL_KEGIATAN = list;
+    document.getElementById('tblKegiatanBody').innerHTML = list.map(function (k) {
+      const badge = k.Status === 'Aktif' ? 'badge-status-aktif' : 'badge-status-nonaktif';
+      return '<tr><td>' + k.Nama + '</td><td>' + k.Tema + '</td><td>' + formatTanggalIndo(k.Tanggal) + '</td>' +
+        '<td>' + k.JamMulai + '-' + k.JamSelesai + '</td><td>' + k.Lokasi + '</td><td>' + k.Radius + 'm</td>' +
+        '<td><span class="badge ' + badge + '">' + k.Status + '</span></td>' +
+        '<td><button class="btn btn-sm btn-sp-outline me-1" onclick=\'editKegiatan(' + JSON.stringify(k) + ')\'><i class="bi bi-pencil"></i></button>' +
+        '<button class="btn btn-sm btn-outline-danger" onclick="removeKegiatan(\'' + k.ID + '\')"><i class="bi bi-trash"></i></button></td></tr>';
+    }).join('');
+  });
+}
+
+function openKegiatanModal() {
+  ['kegiatanID','kgNama','kgTema','kgTanggal','kgJamMulai','kgJamSelesai','kgLokasi','kgAlamat','kgLat','kgLng'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('kgRadius').value = 100;
+  document.getElementById('kgStatus').value = 'Aktif';
+}
+
+function editKegiatan(k) {
+  document.getElementById('kegiatanID').value = k.ID;
+  document.getElementById('kgNama').value = k.Nama;
+  document.getElementById('kgTema').value = k.Tema;
+  document.getElementById('kgTanggal').value = k.Tanggal ? new Date(k.Tanggal).toISOString().slice(0,10) : '';
+  document.getElementById('kgJamMulai').value = k.JamMulai;
+  document.getElementById('kgJamSelesai').value = k.JamSelesai;
+  document.getElementById('kgLokasi').value = k.Lokasi;
+  document.getElementById('kgAlamat').value = k.Alamat;
+  document.getElementById('kgLat').value = k.Latitude;
+  document.getElementById('kgLng').value = k.Longitude;
+  document.getElementById('kgRadius').value = k.Radius;
+  document.getElementById('kgStatus').value = k.Status;
+  new bootstrap.Modal(document.getElementById('modalKegiatan')).show();
+}
+
+function saveKegiatanForm() {
+  const data = {
+    ID: document.getElementById('kegiatanID').value,
+    Nama: document.getElementById('kgNama').value,
+    Tema: document.getElementById('kgTema').value,
+    Tanggal: document.getElementById('kgTanggal').value,
+    JamMulai: document.getElementById('kgJamMulai').value,
+    JamSelesai: document.getElementById('kgJamSelesai').value,
+    Lokasi: document.getElementById('kgLokasi').value,
+    Alamat: document.getElementById('kgAlamat').value,
+    Latitude: document.getElementById('kgLat').value,
+    Longitude: document.getElementById('kgLng').value,
+    Radius: document.getElementById('kgRadius').value,
+    Status: document.getElementById('kgStatus').value
+  };
+  if (!data.Nama) { alert('Nama kegiatan wajib diisi.'); return; }
+  callAPI('saveKegiatan', [data]).then(function () {
+    bootstrap.Modal.getInstance(document.getElementById('modalKegiatan')).hide();
+    loadDataKegiatan();
+  });
+}
+
+function removeKegiatan(id) {
+  if (!confirm('Hapus kegiatan ini?')) return;
+  callAPI('deleteKegiatan', [id]).then(function () { loadDataKegiatan(); });
+}
+
+function useCurrentLocationForKegiatan() {
+  const status = document.getElementById('kgLocStatus');
+  if (!navigator.geolocation) {
+    status.innerText = 'Perangkat tidak mendukung GPS.';
+    status.style.color = '#dc2626';
+    return;
+  }
+  status.innerText = 'Mengambil lokasi...';
+  status.style.color = 'var(--sp-muted)';
+  navigator.geolocation.getCurrentPosition(function (pos) {
+    document.getElementById('kgLat').value = pos.coords.latitude.toFixed(6);
+    document.getElementById('kgLng').value = pos.coords.longitude.toFixed(6);
+    status.innerText = 'Lokasi berhasil diambil (akurasi ' + Math.round(pos.coords.accuracy) + 'm)';
+    status.style.color = 'var(--sp-green-600)';
+  }, function (err) {
+    status.innerText = 'Gagal mengambil lokasi: ' + (err.message || 'izin GPS ditolak.');
+    status.style.color = '#dc2626';
+  }, { enableHighAccuracy: true, timeout: 10000 });
+}
+
+/* =========================================================
+ *  SCAN QR
+ * ========================================================= */
+function startScannerPage() {
+  callAPI('getDashboardData').then(function (data) {
+    document.getElementById('scanKegiatanNama').innerText = data.kegiatan ? data.kegiatan.Nama : 'Tidak ada kegiatan aktif';
+    document.getElementById('scanSudahHadir').innerText = data.stats.hadir;
+    document.getElementById('scanBelumHadir').innerText = data.stats.belumHadir;
+    document.getElementById('scanPersentase').innerText = data.stats.persentase + '%';
+  });
+
+  loadRecentAttendance();
+  requestGPS();
+  if (!scannerRunning) startScannerCamera();
+}
+
+function requestGPS() {
+  const box = document.getElementById('gpsStatusBox');
+  const text = document.getElementById('gpsStatusText');
+  if (!navigator.geolocation) {
+    box.className = 'gps-status gps-invalid d-inline-flex';
+    text.innerText = 'Perangkat tidak mendukung GPS.';
+    return;
+  }
+  navigator.geolocation.watchPosition(function (pos) {
+    currentLat = pos.coords.latitude;
+    currentLng = pos.coords.longitude;
+    box.className = 'gps-status gps-valid d-inline-flex';
+    text.innerText = 'Lokasi Valid (akurasi ' + Math.round(pos.coords.accuracy) + 'm)';
+  }, function () {
+    box.className = 'gps-status gps-invalid d-inline-flex';
+    text.innerText = 'Lokasi Tidak Valid. Izinkan akses lokasi.';
+  }, { enableHighAccuracy: true, maximumAge: 5000 });
+}
+
+function startScannerCamera() {
+  html5QrCode = new Html5Qrcode('qrReader');
+  const config = { fps: 10, qrbox: { width: 240, height: 240 } };
+
+  html5QrCode.start(
+    { facingMode: 'environment' },
+    config,
+    function (decodedText) { onScanSuccess(decodedText); },
+    function () { /* scan error per-frame, abaikan */ }
+  ).then(function () {
+    scannerRunning = true;
+  }).catch(function (err) {
+    console.error('Gagal membuka kamera:', err);
+    document.getElementById('qrReader').innerHTML =
+      '<div class="text-center text-white p-4">' +
+      '<i class="bi bi-camera-video-off" style="font-size:40px;"></i>' +
+      '<p class="mt-2 mb-1">Kamera tidak bisa diakses.</p>' +
+      '<p style="font-size:12px;opacity:.7;">Pastikan izin kamera sudah diizinkan di browser/aplikasi, lalu muat ulang halaman.<br>Error: ' + (err && err.message ? err.message : err) + '</p>' +
+      '<button class="btn btn-sm btn-light mt-2" onclick="startScannerCamera()">Coba Lagi</button>' +
+      '</div>';
+  });
+}
+
+function stopScanner() {
+  if (html5QrCode && scannerRunning) {
+    html5QrCode.stop().then(function () { scannerRunning = false; }).catch(function () {});
+  }
+}
+
+function onScanSuccess(decodedText) {
+  if (scanLock) return;
+  scanLock = true;
+  callAPI('processScan', [decodedText, currentLat, currentLng])
+    .then(function (res) { handleScanResult(res); scanLock = false; })
+    .catch(function () { scanLock = false; });
+}
+
+function handleScanResult(res) {
+  const overlay = document.getElementById('popupOverlay');
+  const card = document.getElementById('popupCard');
+  const icon = document.getElementById('popupIcon');
+  const foto = document.getElementById('popupFoto');
+  const statusEl = document.getElementById('popupStatus');
+
+  card.classList.remove('error');
+  foto.style.display = 'none';
+
+  if (res.success) {
+    document.getElementById('popupNama').innerText = res.guru.nama;
+    document.getElementById('popupSekolah').innerText = res.guru.sekolah;
+    document.getElementById('popupJam').innerText = 'Pukul ' + res.guru.jam;
+    statusEl.innerText = 'HADIR';
+    statusEl.style.background = 'var(--sp-green-600)';
+    icon.innerHTML = '<i class="bi bi-check-lg"></i>';
+    icon.style.background = '#dcfce7'; icon.style.color = 'var(--sp-green-600)';
+    speak((res.guru.jenisKelamin === 'Laki-laki' ? 'Bapak ' : 'Ibu ') + res.guru.nama + ' telah hadir.');
+    loadRecentAttendance();
+    refreshScanStats();
+  } else if (res.code === 'DUPLICATE') {
+    card.classList.add('error');
+    document.getElementById('popupNama').innerText = res.guru.nama;
+    document.getElementById('popupSekolah').innerText = res.guru.sekolah;
+    document.getElementById('popupJam').innerText = 'Absen pukul ' + res.guru.jam;
+    statusEl.innerText = 'SUDAH ABSEN';
+    statusEl.style.background = '#dc2626';
+    icon.innerHTML = '<i class="bi bi-x-lg"></i>';
+    icon.style.background = '#fee2e2'; icon.style.color = '#dc2626';
+    speak('Sudah melakukan absensi.');
+  } else {
+    card.classList.add('error');
+    document.getElementById('popupNama').innerText = res.message;
+    document.getElementById('popupSekolah').innerText = '';
+    document.getElementById('popupJam').innerText = '';
+    statusEl.innerText = 'GAGAL';
+    statusEl.style.background = '#dc2626';
+    icon.innerHTML = '<i class="bi bi-exclamation-triangle"></i>';
+    icon.style.background = '#fee2e2'; icon.style.color = '#dc2626';
+  }
+
+  overlay.classList.add('show');
+  setTimeout(function () { overlay.classList.remove('show'); }, (popupDuration || 2) * 1000);
+}
+
+function speak(text) {
+  try {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'id-ID';
+    utter.volume = 1;
+    window.speechSynthesis.speak(utter);
+  } catch (e) {}
+}
+
+function loadRecentAttendance() {
+  callAPI('getRecentAttendance', [5]).then(function (list) {
+    const el = document.getElementById('recentList');
+    if (!list.length) { el.innerHTML = '<div class="text-white-50" style="font-size:12.5px;">Belum ada data.</div>'; return; }
+    el.innerHTML = list.map(function (r) {
+      return '<div class="recent-item"><i class="bi bi-check-circle-fill text-success"></i> <div><b>' + r.NamaGuru + '</b><br><span style="opacity:.6;">' + r.Sekolah + ' &middot; ' + r.Jam + '</span></div></div>';
+    }).join('');
+  });
+}
+
+function refreshScanStats() {
+  callAPI('getDashboardData').then(function (data) {
+    document.getElementById('scanSudahHadir').innerText = data.stats.hadir;
+    document.getElementById('scanBelumHadir').innerText = data.stats.belumHadir;
+    document.getElementById('scanPersentase').innerText = data.stats.persentase + '%';
+  });
+}
+
+/* =========================================================
+ *  REKAP
+ * ========================================================= */
+function populateRekapFilters() {
+  const selK = document.getElementById('filterKegiatan');
+  selK.innerHTML = '<option value="">Semua Kegiatan</option>' + ALL_KEGIATAN.map(function (k) { return '<option value="' + k.ID + '">' + k.Nama + '</option>'; }).join('');
+
+  const selT = document.getElementById('filterTahun');
+  const thisYear = new Date().getFullYear();
+  let opts = '<option value="">Semua Tahun</option>';
+  for (let y = thisYear; y >= thisYear - 3; y--) opts += '<option value="' + y + '">' + y + '</option>';
+  selT.innerHTML = opts;
+}
+
+function loadRekap() {
+  const filters = {
+    kegiatanId: document.getElementById('filterKegiatan').value,
+    bulan: document.getElementById('filterBulan').value,
+    tahun: document.getElementById('filterTahun').value
+  };
+  callAPI('getRekapData', [filters]).then(function (list) {
+    document.getElementById('tblRekapBody').innerHTML = list.map(function (r) {
+      return '<tr><td>' + r.Tanggal + '</td><td>' + r.Jam + '</td><td>' + r.NamaGuru + '</td><td>' + r.Sekolah + '</td><td>' + r.NamaKegiatan + '</td><td><span class="badge badge-status-aktif">' + r.Status + '</span></td></tr>';
+    }).join('') || '<tr><td colspan="6" class="text-center text-muted py-4">Tidak ada data.</td></tr>';
+  });
+}
+
+function exportRekapExcel() {
+  const rows = document.querySelectorAll('#tblRekap tr');
+  let csv = [];
+  rows.forEach(function (row) {
+    const cols = row.querySelectorAll('th, td');
+    const rowData = Array.from(cols).map(function (c) { return '"' + c.innerText.replace(/"/g,'""') + '"'; });
+    csv.push(rowData.join(','));
+  });
+  const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'Rekap_Kehadiran_SIPELLO.csv';
+  link.click();
+}
+
+/* =========================================================
+ *  PENGATURAN
+ * ========================================================= */
+function loadPengaturan() {
+  callAPI('getPengaturan').then(function (s) {
+    document.getElementById('setNamaMGMP').value = s.NamaMGMP || '';
+    document.getElementById('setTagline').value = s.Tagline || '';
+    document.getElementById('setLogo').value = s.LogoUrl || '';
+    document.getElementById('setRadius').value = s.RadiusGPS || 100;
+    document.getElementById('radiusVal').innerText = s.RadiusGPS || 100;
+    document.getElementById('setDurasi').value = s.DurasiPopup || 2;
+    document.getElementById('durasiVal').innerText = s.DurasiPopup || 2;
+    document.getElementById('setVolume').value = s.Volume || 80;
+    document.getElementById('volVal').innerText = s.Volume || 80;
+    document.getElementById('setTema').value = s.Tema || 'Hijau';
+    popupDuration = parseInt(s.DurasiPopup || 2, 10);
+
+    ['setRadius','setDurasi','setVolume'].forEach(function(id){
+      document.getElementById(id).addEventListener('input', function(){
+        const map = {setRadius:'radiusVal', setDurasi:'durasiVal', setVolume:'volVal'};
+        document.getElementById(map[id]).innerText = this.value;
+      });
+    });
+  });
+}
+
+function savePengaturanForm() {
+  const data = {
+    NamaMGMP: document.getElementById('setNamaMGMP').value,
+    Tagline: document.getElementById('setTagline').value,
+    LogoUrl: document.getElementById('setLogo').value,
+    RadiusGPS: document.getElementById('setRadius').value,
+    DurasiPopup: document.getElementById('setDurasi').value,
+    Volume: document.getElementById('setVolume').value,
+    Tema: document.getElementById('setTema').value
+  };
+  popupDuration = parseInt(data.DurasiPopup, 10);
+  callAPI('savePengaturan', [data]).then(function () { alert('Pengaturan berhasil disimpan.'); });
+}
+</script>
+</body>
+</html>

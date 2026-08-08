@@ -1,0 +1,17 @@
+{
+  "name": "SIPELLO - Sistem Informasi Presensi Elektronik",
+  "short_name": "SIPELLO",
+  "description": "Sistem Informasi Presensi Elektronik MGMP Penjasorkes SMP Swasta Bondowoso",
+  "start_url": "./index.html",
+  "scope": "./",
+  "id": "sipello-mgmp-pjok",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#166534",
+  "lang": "id",
+  "icons": [
+    { "src": "https://lh3.googleusercontent.com/d/1dRLfW0FgeSjVHfqv-zMgtJg_H3ZQ_H-M", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "https://lh3.googleusercontent.com/d/1dRLfW0FgeSjVHfqv-zMgtJg_H3ZQ_H-M", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
