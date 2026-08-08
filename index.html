@@ -345,9 +345,14 @@
   <div class="sp-card">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
       <h5 class="mb-0"><i class="bi bi-people-fill text-success me-1"></i> Data Guru</h5>
-      <button class="btn btn-sp-green" data-bs-toggle="modal" data-bs-target="#modalGuru" onclick="openGuruModal()">
-        <i class="bi bi-plus-lg"></i> Tambah Guru
-      </button>
+      <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-sp-outline" onclick="downloadTemplateGuru()"><i class="bi bi-download"></i> Download Template</button>
+        <button class="btn btn-sp-outline" onclick="document.getElementById(\'fileGuruExcel\').click()"><i class="bi bi-file-earmark-excel"></i> Upload Excel</button>
+        <input type="file" id="fileGuruExcel" accept=".xlsx,.xls" class="d-none" onchange="handleUploadGuruExcel(event)">
+        <button class="btn btn-sp-green" data-bs-toggle="modal" data-bs-target="#modalGuru" onclick="openGuruModal()">
+          <i class="bi bi-plus-lg"></i> Tambah Guru
+        </button>
+      </div>
     </div>
     <div class="table-responsive">
       <table class="table table-hover align-middle">
@@ -394,13 +399,26 @@
     <div class="modal-body"><img id="qrImgPreview" src="" style="width:220px;height:220px;"><div id="qrNamaPreview" class="fw-bold mt-2"></div></div>
   </div></div>
 </div>
+
+<div class="modal fade" id="modalUploadResult" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Hasil Upload Excel</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body" id="uploadResultBody">Memproses...</div>
+    <div class="modal-footer"><button class="btn btn-sp-green" data-bs-dismiss="modal">Tutup</button></div>
+  </div></div>
+</div>
 <div class="page-section" id="page-DataSekolah">
   <div class="sp-card">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
       <h5 class="mb-0"><i class="bi bi-building text-success me-1"></i> Data Sekolah</h5>
-      <button class="btn btn-sp-green" data-bs-toggle="modal" data-bs-target="#modalSekolah" onclick="openSekolahModal()">
-        <i class="bi bi-plus-lg"></i> Tambah Sekolah
-      </button>
+      <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-sp-outline" onclick="downloadTemplateSekolah()"><i class="bi bi-download"></i> Download Template</button>
+        <button class="btn btn-sp-outline" onclick="document.getElementById(\'fileSekolahExcel\').click()"><i class="bi bi-file-earmark-excel"></i> Upload Excel</button>
+        <input type="file" id="fileSekolahExcel" accept=".xlsx,.xls" class="d-none" onchange="handleUploadSekolahExcel(event)">
+        <button class="btn btn-sp-green" data-bs-toggle="modal" data-bs-target="#modalSekolah" onclick="openSekolahModal()">
+          <i class="bi bi-plus-lg"></i> Tambah Sekolah
+        </button>
+      </div>
     </div>
     <div class="table-responsive">
       <table class="table table-hover align-middle">
@@ -601,6 +619,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* =========================================================
  *  KONFIGURASI - GANTI DENGAN LINK /exec APPS SCRIPT KAMU
@@ -832,6 +851,96 @@ function showQR(url, nama) {
   document.getElementById('qrImgPreview').src = url;
   document.getElementById('qrNamaPreview').innerText = nama;
   new bootstrap.Modal(document.getElementById('modalQR')).show();
+}
+
+/* ---------- UPLOAD & TEMPLATE EXCEL - GURU ---------- */
+function downloadTemplateGuru() {
+  const data = [
+    ['Nama', 'JenisKelamin', 'Sekolah', 'Kecamatan', 'NomorHP', 'FotoURL', 'Status'],
+    ['Ahmad Fauzi', 'Laki-laki', 'SMP Islam Al-Ikhlas Bondowoso', 'Bondowoso', '081234567890', '', 'Aktif'],
+    ['Nur Aini', 'Perempuan', 'SMP Negeri 1 Bondowoso', 'Bondowoso', '081234567891', '', 'Aktif']
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template Guru');
+  XLSX.writeFile(wb, 'Template_Data_Guru_SIPELLO.xlsx');
+}
+
+function handleUploadGuruExcel(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      if (!rows.length) { alert('File Excel kosong atau format tidak sesuai template.'); return; }
+
+      const resultBody = document.getElementById('uploadResultBody');
+      resultBody.innerHTML = 'Mengunggah ' + rows.length + ' baris data, mohon tunggu...';
+      new bootstrap.Modal(document.getElementById('modalUploadResult')).show();
+
+      callAPI('bulkSaveGuru', [rows]).then(function (res) {
+        resultBody.innerHTML =
+          '<div class="alert alert-success">Berhasil: ' + res.created + ' guru baru ditambahkan, ' + res.updated + ' guru diperbarui.</div>' +
+          (res.skipped ? '<div class="alert alert-warning">' + res.skipped + ' baris dilewati (nama kosong).</div>' : '') +
+          (res.errors && res.errors.length ? '<div style="font-size:12px;color:#dc2626;">' + res.errors.join('<br>') + '</div>' : '');
+        loadDataGuru();
+      }).catch(function (err) {
+        resultBody.innerHTML = '<div class="alert alert-danger">Gagal upload: ' + err.message + '</div>';
+      });
+    } catch (err) {
+      alert('Gagal membaca file Excel: ' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ---------- UPLOAD & TEMPLATE EXCEL - SEKOLAH ---------- */
+function downloadTemplateSekolah() {
+  const data = [
+    ['NamaSekolah', 'Kecamatan', 'Alamat'],
+    ['SMP Islam Al-Ikhlas Bondowoso', 'Bondowoso', 'Jl. Ahmad Yani No. 45, Bondowoso'],
+    ['SMP Negeri 1 Bondowoso', 'Bondowoso', 'Jl. Diponegoro No. 10, Bondowoso']
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template Sekolah');
+  XLSX.writeFile(wb, 'Template_Data_Sekolah_SIPELLO.xlsx');
+}
+
+function handleUploadSekolahExcel(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      if (!rows.length) { alert('File Excel kosong atau format tidak sesuai template.'); return; }
+
+      const resultBody = document.getElementById('uploadResultBody');
+      resultBody.innerHTML = 'Mengunggah ' + rows.length + ' baris data, mohon tunggu...';
+      new bootstrap.Modal(document.getElementById('modalUploadResult')).show();
+
+      callAPI('bulkSaveSekolah', [rows]).then(function (res) {
+        resultBody.innerHTML =
+          '<div class="alert alert-success">Berhasil: ' + res.created + ' sekolah baru ditambahkan, ' + res.updated + ' sekolah diperbarui.</div>' +
+          (res.skipped ? '<div class="alert alert-warning">' + res.skipped + ' baris dilewati (nama kosong).</div>' : '') +
+          (res.errors && res.errors.length ? '<div style="font-size:12px;color:#dc2626;">' + res.errors.join('<br>') + '</div>' : '');
+        loadDataSekolah();
+      }).catch(function (err) {
+        resultBody.innerHTML = '<div class="alert alert-danger">Gagal upload: ' + err.message + '</div>';
+      });
+    } catch (err) {
+      alert('Gagal membaca file Excel: ' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 /* =========================================================
