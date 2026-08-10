@@ -349,6 +349,8 @@
         <button class="btn btn-sp-outline" onclick="downloadTemplateGuru()"><i class="bi bi-download"></i> Download Template</button>
         <button class="btn btn-sp-outline" onclick="document.getElementById(&quot;fileGuruExcel&quot;).click()"><i class="bi bi-file-earmark-excel"></i> Upload Excel</button>
         <input type="file" id="fileGuruExcel" accept=".xlsx,.xls" class="d-none" onchange="handleUploadGuruExcel(event)">
+        <button class="btn btn-sp-outline" onclick="document.getElementById(&quot;fileFotoMassal&quot;).click()"><i class="bi bi-images"></i> Upload Foto Massal</button>
+        <input type="file" id="fileFotoMassal" accept=".jpg,.jpeg,.png" multiple class="d-none" onchange="handleUploadFotoMassal(event)">
         <button class="btn btn-sp-green" data-bs-toggle="modal" data-bs-target="#modalGuru" onclick="openGuruModal()">
           <i class="bi bi-plus-lg"></i> Tambah Guru
         </button>
@@ -851,6 +853,48 @@ function showQR(url, nama) {
   document.getElementById('qrImgPreview').src = url;
   document.getElementById('qrNamaPreview').innerText = nama;
   new bootstrap.Modal(document.getElementById('modalQR')).show();
+}
+
+/* ---------- UPLOAD FOTO MASSAL - GURU ---------- */
+function handleUploadFotoMassal(event) {
+  const files = Array.from(event.target.files || []);
+  if (!files.length) return;
+
+  const resultBody = document.getElementById('uploadResultBody');
+  resultBody.innerHTML = 'Mengunggah 0 dari ' + files.length + ' foto...';
+  new bootstrap.Modal(document.getElementById('modalUploadResult')).show();
+
+  let done = 0;
+  const matched = [];
+  const unmatched = [];
+
+  function processNext(i) {
+    if (i >= files.length) {
+      resultBody.innerHTML =
+        '<div class="alert alert-success">Berhasil dicocokkan &amp; diunggah: ' + matched.length + ' foto.</div>' +
+        (unmatched.length ? '<div class="alert alert-warning"><b>' + unmatched.length + ' file tidak cocok dengan nama guru manapun:</b><br>' + unmatched.join('<br>') + '</div>' : '');
+      loadDataGuru();
+      event.target.value = '';
+      return;
+    }
+    const file = files[i];
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const base64 = e.target.result.split(',')[1];
+      callAPI('uploadFotoGuru', [file.name, base64, file.type || 'image/jpeg']).then(function (res) {
+        done++;
+        if (res.matched) matched.push(res.nama); else unmatched.push(res.filename || file.name);
+        resultBody.innerHTML = 'Mengunggah ' + done + ' dari ' + files.length + ' foto...';
+        processNext(i + 1);
+      }).catch(function () {
+        done++;
+        unmatched.push(file.name);
+        processNext(i + 1);
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+  processNext(0);
 }
 
 /* ---------- UPLOAD & TEMPLATE EXCEL - GURU ---------- */
