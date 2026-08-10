@@ -166,6 +166,43 @@
     .sidebar.open{left:0;}
     .main-wrapper{width:100%;}
   }
+
+  /* ---------- DASHBOARD BARU ---------- */
+  .dash-date-badge{display:flex; align-items:center; gap:8px; background:var(--sp-green-50); border:1px solid #bbf7d0; border-radius:10px; padding:8px 14px;}
+  .dash-kegiatan-card{overflow:hidden;}
+  .badge-kegiatan-aktif{
+    position:absolute; top:0; left:0; background:var(--sp-green-700); color:#fff; font-size:10.5px; font-weight:700;
+    padding:5px 14px; border-radius:0 0 10px 0; letter-spacing:.4px;
+  }
+  .badge-live{background:var(--sp-green-50); color:var(--sp-green-700); font-size:11px; font-weight:700; padding:5px 12px; border-radius:20px; white-space:nowrap;}
+  .dash-progress-box{background:var(--sp-bg); border-radius:12px; padding:14px 16px;}
+  .avatar-stack-item{width:26px; height:26px; border-radius:50%; border:2px solid #fff; margin-left:-8px; object-fit:cover; background:#e5e7eb;}
+  .avatar-stack-item:first-child{margin-left:0;}
+  .avatar-stack-more{width:26px; height:26px; border-radius:50%; border:2px solid #fff; margin-left:-8px; background:var(--sp-green-700); color:#fff; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center;}
+
+  .quick-access-item{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    background:var(--sp-bg); border:1px solid var(--sp-border); border-radius:12px; padding:16px 8px;
+    text-decoration:none; color:var(--sp-text); transition:.15s; height:100%;
+  }
+  .quick-access-item:hover{background:var(--sp-green-50); border-color:var(--sp-green-600); color:var(--sp-green-700);}
+  .quick-access-item i{font-size:22px; color:var(--sp-green-600);}
+  .quick-access-item span{font-size:11.5px; font-weight:600; text-align:center;}
+
+  .upcoming-item{display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--sp-border);}
+  .upcoming-item:last-child{border-bottom:none;}
+  .upcoming-date-box{
+    width:42px; height:42px; border-radius:10px; background:var(--sp-green-50); color:var(--sp-green-700);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0; font-weight:700;
+  }
+  .upcoming-date-box .d{font-size:14px; line-height:1;}
+  .upcoming-date-box .m{font-size:9px; text-transform:uppercase;}
+  .upcoming-badge{background:var(--sp-green-50); color:var(--sp-green-700); font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:12px; white-space:nowrap;}
+
+  .dash-footer-banner{
+    background:linear-gradient(135deg,var(--sp-green-800),var(--sp-green-600)); color:#fff; border-radius:16px;
+    padding:20px 24px; display:flex; align-items:center; gap:16px;
+  }
 </style>
 </head>
 <body>
@@ -244,100 +281,155 @@
     <div class="content-area" id="contentArea">
 <div class="page-section active" id="page-Dashboard">
 
-  <div class="sp-card mb-4">
-    <h5><i class="bi bi-info-circle-fill text-success me-1"></i> Informasi Kegiatan Terpilih</h5>
-    <div class="row">
-      <div class="col-lg-6">
-        <div class="info-row">
-          <div class="info-icon"><i class="bi bi-calendar-event"></i></div>
+  <!-- HEADER SAMBUTAN -->
+  <div class="sp-card mb-3 dash-welcome">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h5 class="mb-1">Selamat datang, <span id="welcomeUserName">Pengurus MGMP</span> 👋</h5>
+        <p class="text-muted mb-0" style="font-size:13px;">Kelola kegiatan, presensi, dan data MGMP dengan mudah.</p>
+      </div>
+      <div class="d-flex align-items-center gap-2" style="font-size:12.5px;">
+        <div class="dash-date-badge">
+          <i class="bi bi-calendar3 text-success"></i>
           <div>
-            <div class="label">Nama Kegiatan</div>
-            <div class="value" id="dashNamaKegiatan">-</div>
-          </div>
-        </div>
-        <div class="info-row">
-          <div class="info-icon"><i class="bi bi-lightbulb"></i></div>
-          <div>
-            <div class="label">Tema</div>
-            <div class="value" id="dashTema">-</div>
-          </div>
-        </div>
-        <div class="info-row">
-          <div class="info-icon"><i class="bi bi-calendar3"></i></div>
-          <div>
-            <div class="label">Tanggal</div>
-            <div class="value" id="dashTanggal">-</div>
-          </div>
-        </div>
-        <div class="info-row">
-          <div class="info-icon"><i class="bi bi-clock"></i></div>
-          <div>
-            <div class="label">Waktu</div>
-            <div class="value" id="dashWaktu">-</div>
-          </div>
-        </div>
-        <div class="info-row mb-0">
-          <div class="info-icon"><i class="bi bi-geo-alt-fill"></i></div>
-          <div>
-            <div class="label">Lokasi</div>
-            <div class="value" id="dashLokasi">-</div>
-            <div style="font-size:12.5px;color:var(--sp-muted);" id="dashAlamat"></div>
+            <div id="dashHeaderTanggal" style="font-weight:600;">-</div>
+            <div id="dashHeaderJam" class="text-muted" style="font-size:11px;">-</div>
           </div>
         </div>
       </div>
-      <div class="col-lg-6 mt-3 mt-lg-0">
+    </div>
+  </div>
+
+  <!-- 5 KARTU STATISTIK -->
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-lg">
+      <div class="stat-card stat-blue"><div class="icon"><i class="bi bi-people-fill"></i></div>
+        <div><div class="num" id="statTotalGuru">0</div><div class="lbl">Guru Terdaftar</div></div></div>
+    </div>
+    <div class="col-6 col-lg">
+      <div class="stat-card stat-green"><div class="icon"><i class="bi bi-person-check-fill"></i></div>
+        <div><div class="num" id="statHadir">0</div><div class="lbl">Guru Hadir</div></div></div>
+    </div>
+    <div class="col-6 col-lg">
+      <div class="stat-card stat-orange"><div class="icon"><i class="bi bi-clock-fill"></i></div>
+        <div><div class="num" id="statBelumHadir">0</div><div class="lbl">Guru Belum Hadir</div></div></div>
+    </div>
+    <div class="col-6 col-lg">
+      <div class="stat-card stat-purple"><div class="icon"><i class="bi bi-pie-chart-fill"></i></div>
+        <div><div class="num" id="statPersentase">0%</div><div class="lbl">Kehadiran Hari Ini</div></div></div>
+    </div>
+    <div class="col-6 col-lg">
+      <div class="stat-card stat-blue"><div class="icon"><i class="bi bi-calendar-event-fill"></i></div>
+        <div><div class="num" id="statKegiatanTahunIni">0</div><div class="lbl">Kegiatan Tahun Ini</div></div></div>
+    </div>
+  </div>
+
+  <!-- KEGIATAN AKTIF + PETA -->
+  <div class="row g-3 mb-3">
+    <div class="col-lg-7">
+      <div class="sp-card h-100 position-relative dash-kegiatan-card">
+        <span class="badge-kegiatan-aktif">KEGIATAN AKTIF</span>
+        <div class="d-flex justify-content-between align-items-start mt-4 mb-2">
+          <h5 class="mb-0" id="dashNamaKegiatan">-</h5>
+          <span class="badge-live"><i class="bi bi-broadcast"></i> Sedang Berlangsung</span>
+        </div>
+        <p class="text-muted mb-1" style="font-size:13.5px;" id="dashTema">-</p>
+
+        <div class="row mt-3" style="font-size:13px;">
+          <div class="col-4">
+            <div class="text-muted" style="font-size:11px;">TANGGAL</div>
+            <div class="fw-semibold" id="dashTanggal">-</div>
+          </div>
+          <div class="col-4">
+            <div class="text-muted" style="font-size:11px;">WAKTU</div>
+            <div class="fw-semibold" id="dashWaktu">-</div>
+          </div>
+          <div class="col-4">
+            <div class="text-muted" style="font-size:11px;">LOKASI</div>
+            <div class="fw-semibold" id="dashLokasi">-</div>
+          </div>
+        </div>
+
+        <div class="dash-progress-box mt-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div><span class="fw-bold text-success" id="dashHadirNum">0</span> <span class="text-muted" style="font-size:12px;">Hadir</span></div>
+            <div id="dashAvatarStack" class="d-flex"></div>
+            <div><span class="fw-bold text-warning" id="dashBelumHadirNum">0</span> <span class="text-muted" style="font-size:12px;">Belum Hadir</span></div>
+          </div>
+          <div class="progress" style="height:8px;border-radius:10px;">
+            <div class="progress-bar bg-success" id="dashProgressBar" style="width:0%;border-radius:10px;"></div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-3 flex-wrap">
+          <button class="btn btn-sp-green flex-grow-1" onclick="goToPage('ScanQR')"><i class="bi bi-qr-code-scan"></i> Mulai Scan QR</button>
+          <button class="btn btn-sp-outline" onclick="goToPage('KegiatanMGMP')"><i class="bi bi-info-circle"></i> Detail Kegiatan</button>
+          <button class="btn btn-sp-outline" onclick="goToPage('DataGuru')"><i class="bi bi-people"></i> Lihat Peserta</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="sp-card h-100">
+        <h6 class="mb-2" style="font-size:13px;font-weight:700;letter-spacing:.3px;">LOKASI KEGIATAN</h6>
         <div style="border:1px solid var(--sp-border); border-radius:14px; overflow:hidden;">
-          <iframe id="dashMapFrame" width="100%" height="220" style="border:0;" loading="lazy"></iframe>
-          <div class="d-flex justify-content-between px-3 py-2" style="border-top:1px solid var(--sp-border); font-size:12.5px;">
+          <iframe id="dashMapFrame" width="100%" height="180" style="border:0;" loading="lazy"></iframe>
+          <div class="d-flex justify-content-between px-3 py-2" style="border-top:1px solid var(--sp-border); font-size:12px;">
             <div><span class="text-muted">Koordinat</span><br><span id="dashKoordinat">-</span></div>
             <div class="text-end"><span class="text-muted">Radius Absensi</span><br><span id="dashRadius">-</span></div>
           </div>
         </div>
+        <a id="dashMapsLink" href="#" target="_blank" class="btn btn-sp-outline w-100 mt-2" style="font-size:12.5px;">
+          <i class="bi bi-box-arrow-up-right"></i> Lihat di Google Maps
+        </a>
       </div>
     </div>
   </div>
 
-  <div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3">
-      <div class="stat-card stat-blue"><div class="icon"><i class="bi bi-people-fill"></i></div>
-        <div><div class="num" id="statTotalGuru">0</div><div class="lbl">Guru Terdaftar</div></div></div>
+  <!-- GRAFIK + KEGIATAN TERDEKAT + AKSES CEPAT -->
+  <div class="row g-3 mb-3">
+    <div class="col-lg-4">
+      <div class="sp-card h-100">
+        <h6 class="mb-3" style="font-size:13px;font-weight:700;letter-spacing:.3px;">STATISTIK KEHADIRAN 6 BULAN TERAKHIR</h6>
+        <svg id="chartKehadiran" viewBox="0 0 300 150" style="width:100%;height:150px;"></svg>
+      </div>
     </div>
-    <div class="col-6 col-lg-3">
-      <div class="stat-card stat-green"><div class="icon"><i class="bi bi-person-check-fill"></i></div>
-        <div><div class="num" id="statHadir">0</div><div class="lbl">Sudah Hadir</div></div></div>
-    </div>
-    <div class="col-6 col-lg-3">
-      <div class="stat-card stat-orange"><div class="icon"><i class="bi bi-clock-fill"></i></div>
-        <div><div class="num" id="statBelumHadir">0</div><div class="lbl">Belum Hadir</div></div></div>
-    </div>
-    <div class="col-6 col-lg-3">
-      <div class="stat-card stat-purple"><div class="icon"><i class="bi bi-pie-chart-fill"></i></div>
-        <div><div class="num" id="statPersentase">0%</div><div class="lbl">Persentase Kehadiran</div></div></div>
-    </div>
-  </div>
 
-  <div class="sp-card mb-3">
-    <div class="row align-items-center">
-      <div class="col-md-3 text-center mb-3 mb-md-0">
-        <i class="bi bi-person-badge" style="font-size:70px;color:var(--sp-green-600);"></i>
+    <div class="col-lg-4">
+      <div class="sp-card h-100">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0" style="font-size:13px;font-weight:700;letter-spacing:.3px;">KEGIATAN TERDEKAT</h6>
+          <a href="#" onclick="goToPage('KegiatanMGMP'); return false;" style="font-size:12px;">Lihat Semua</a>
+        </div>
+        <div id="upcomingKegiatanList"><div class="text-muted" style="font-size:12.5px;">Memuat...</div></div>
       </div>
-      <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-        <h5 class="mb-1">Siap untuk melakukan absensi?</h5>
-        <p class="text-muted mb-0" style="font-size:13.5px;">
-          Pastikan kegiatan sudah benar dan Anda berada di lokasi kegiatan.<br>
-          Tekan tombol di bawah untuk memulai scan QR Code guru.
-        </p>
-      </div>
-      <div class="col-md-3 text-center text-md-end">
-        <button class="btn btn-scan-big" onclick="goToPage('ScanQR')">
-          <i class="bi bi-qr-code-scan" style="font-size:22px;"></i>
-          <span class="text-start">MULAI SCAN QR<small>Klik untuk membuka kamera</small></span>
-        </button>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="sp-card h-100">
+        <h6 class="mb-3" style="font-size:13px;font-weight:700;letter-spacing:.3px;">AKSES CEPAT</h6>
+        <div class="row g-2">
+          <div class="col-6"><a href="#" class="quick-access-item" onclick="goToPage('ScanQR'); return false;"><i class="bi bi-qr-code-scan"></i><span>Scan QR</span></a></div>
+          <div class="col-6"><a href="#" class="quick-access-item" onclick="goToPage('DataGuru'); return false;"><i class="bi bi-people-fill"></i><span>Data Guru</span></a></div>
+          <div class="col-6"><a href="#" class="quick-access-item" onclick="goToPage('DataSekolah'); return false;"><i class="bi bi-building"></i><span>Data Sekolah</span></a></div>
+          <div class="col-6"><a href="#" class="quick-access-item" onclick="goToPage('KegiatanMGMP'); return false;"><i class="bi bi-calendar-event-fill"></i><span>Kegiatan</span></a></div>
+          <div class="col-6"><a href="#" class="quick-access-item" onclick="goToPage('Rekap'); return false;"><i class="bi bi-bar-chart-fill"></i><span>Rekap</span></a></div>
+          <div class="col-6"><a href="#" class="quick-access-item" onclick="goToPage('Pengaturan'); return false;"><i class="bi bi-gear-fill"></i><span>Pengaturan</span></a></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="notice-bar">
+  <!-- FOOTER MOTIVASI -->
+  <div class="dash-footer-banner">
+    <i class="bi bi-person-running" style="font-size:26px;"></i>
+    <div>
+      <div style="font-weight:600;font-size:13.5px;">Setiap langkah, setiap usaha, setiap keringat yang kita keluarkan adalah bagian dari dedikasi untuk pendidikan yang lebih baik.</div>
+      <div class="text-success" style="font-weight:700;font-size:12.5px;">SIPELLO - Setiap Keringat, Tercatat.</div>
+    </div>
+  </div>
+
+  <div class="notice-bar mt-3">
     <i class="bi bi-info-circle me-1"></i> Pastikan koneksi internet aktif dan izinkan akses lokasi perangkat untuk akurasi absensi.
   </div>
 </div>
@@ -347,9 +439,9 @@
       <h5 class="mb-0"><i class="bi bi-people-fill text-success me-1"></i> Data Guru</h5>
       <div class="d-flex gap-2 flex-wrap">
         <button class="btn btn-sp-outline" onclick="downloadTemplateGuru()"><i class="bi bi-download"></i> Download Template</button>
-        <button class="btn btn-sp-outline" onclick="document.getElementById(&quot;fileGuruExcel&quot;).click()"><i class="bi bi-file-earmark-excel"></i> Upload Excel</button>
+        <button class="btn btn-sp-outline" onclick="document.getElementById('fileGuruExcel').click()"><i class="bi bi-file-earmark-excel"></i> Upload Excel</button>
         <input type="file" id="fileGuruExcel" accept=".xlsx,.xls" class="d-none" onchange="handleUploadGuruExcel(event)">
-        <button class="btn btn-sp-outline" onclick="document.getElementById(&quot;fileFotoMassal&quot;).click()"><i class="bi bi-images"></i> Upload Foto Massal</button>
+        <button class="btn btn-sp-outline" onclick="document.getElementById('fileFotoMassal').click()"><i class="bi bi-images"></i> Upload Foto Massal</button>
         <input type="file" id="fileFotoMassal" accept=".jpg,.jpeg,.png" multiple class="d-none" onchange="handleUploadFotoMassal(event)">
         <button class="btn btn-sp-green" data-bs-toggle="modal" data-bs-target="#modalGuru" onclick="openGuruModal()">
           <i class="bi bi-plus-lg"></i> Tambah Guru
@@ -402,6 +494,7 @@
   </div></div>
 </div>
 
+<!-- Modal Hasil Upload Excel -->
 <div class="modal fade" id="modalUploadResult" tabindex="-1">
   <div class="modal-dialog"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title">Hasil Upload Excel</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
@@ -415,7 +508,7 @@
       <h5 class="mb-0"><i class="bi bi-building text-success me-1"></i> Data Sekolah</h5>
       <div class="d-flex gap-2 flex-wrap">
         <button class="btn btn-sp-outline" onclick="downloadTemplateSekolah()"><i class="bi bi-download"></i> Download Template</button>
-        <button class="btn btn-sp-outline" onclick="document.getElementById(&quot;fileSekolahExcel&quot;).click()"><i class="bi bi-file-earmark-excel"></i> Upload Excel</button>
+        <button class="btn btn-sp-outline" onclick="document.getElementById('fileSekolahExcel').click()"><i class="bi bi-file-earmark-excel"></i> Upload Excel</button>
         <input type="file" id="fileSekolahExcel" accept=".xlsx,.xls" class="d-none" onchange="handleUploadSekolahExcel(event)">
         <button class="btn btn-sp-green" data-bs-toggle="modal" data-bs-target="#modalSekolah" onclick="openSekolahModal()">
           <i class="bi bi-plus-lg"></i> Tambah Sekolah
@@ -623,6 +716,7 @@
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
+
 /* =========================================================
  *  KONFIGURASI - GANTI DENGAN LINK /exec APPS SCRIPT KAMU
  * ========================================================= */
@@ -742,7 +836,12 @@ function refreshMasterData() {
 /* =========================================================
  *  DASHBOARD
  * ========================================================= */
+let clockInterval = null;
+
 function loadDashboard() {
+  if (CURRENT_USER) document.getElementById('welcomeUserName').innerText = CURRENT_USER.nama;
+  startLiveClock();
+
   callAPI('getDashboardData').then(function (data) {
     const k = data.kegiatan;
     if (k) {
@@ -751,20 +850,103 @@ function loadDashboard() {
       document.getElementById('dashTanggal').innerText = formatTanggalIndo(k.Tanggal);
       document.getElementById('dashWaktu').innerText = (k.JamMulai || '-') + ' - ' + (k.JamSelesai || 'Selesai');
       document.getElementById('dashLokasi').innerText = k.Lokasi || '-';
-      document.getElementById('dashAlamat').innerText = k.Alamat || '';
       document.getElementById('dashKoordinat').innerText = (k.Latitude || '-') + ', ' + (k.Longitude || '-');
       document.getElementById('dashRadius').innerText = (k.Radius || 100) + ' Meter';
       if (k.Latitude && k.Longitude) {
         document.getElementById('dashMapFrame').src = 'https://maps.google.com/maps?q=' + k.Latitude + ',' + k.Longitude + '&z=16&output=embed';
+        document.getElementById('dashMapsLink').href = 'https://maps.google.com/maps?q=' + k.Latitude + ',' + k.Longitude;
       }
     } else {
       document.getElementById('dashNamaKegiatan').innerText = 'Belum ada kegiatan aktif';
+      document.getElementById('dashTema').innerText = 'Buat kegiatan baru di menu Kegiatan MGMP';
     }
     document.getElementById('statTotalGuru').innerText = data.stats.totalGuru;
     document.getElementById('statHadir').innerText = data.stats.hadir;
     document.getElementById('statBelumHadir').innerText = data.stats.belumHadir;
     document.getElementById('statPersentase').innerText = data.stats.persentase + '%';
+    document.getElementById('statKegiatanTahunIni').innerText = data.stats.kegiatanTahunIni;
+    document.getElementById('dashHadirNum').innerText = data.stats.hadir;
+    document.getElementById('dashBelumHadirNum').innerText = data.stats.belumHadir;
+    document.getElementById('dashProgressBar').style.width = data.stats.persentase + '%';
   });
+
+  callAPI('getRecentAttendance', [5]).then(function (list) { renderAvatarStack(list); });
+  callAPI('getMonthlyAttendanceStats').then(function (data) { renderChartKehadiran(data); });
+  callAPI('getUpcomingKegiatan', [3]).then(function (list) { renderUpcomingKegiatan(list); });
+}
+
+function startLiveClock() {
+  if (clockInterval) clearInterval(clockInterval);
+  function tick() {
+    const now = new Date();
+    const hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    document.getElementById('dashHeaderTanggal').innerText = hari[now.getDay()] + ', ' + now.getDate() + ' ' + bulan[now.getMonth()] + ' ' + now.getFullYear();
+    document.getElementById('dashHeaderJam').innerText = ('0'+now.getHours()).slice(-2) + ':' + ('0'+now.getMinutes()).slice(-2) + ' WIB';
+  }
+  tick();
+  clockInterval = setInterval(tick, 30000);
+}
+
+function renderAvatarStack(list) {
+  const el = document.getElementById('dashAvatarStack');
+  if (!el) return;
+  const shown = list.slice(0, 4);
+  let html = shown.map(function (r) {
+    const src = 'https://ui-avatars.com/api/?background=166534&color=fff&size=64&name=' + encodeURIComponent(r.NamaGuru || '?');
+    return '<img class="avatar-stack-item" src="' + src + '" title="' + r.NamaGuru + '">';
+  }).join('');
+  const totalMore = Math.max(list.length - shown.length, 0);
+  if (totalMore > 0) html += '<div class="avatar-stack-more">+' + totalMore + '</div>';
+  el.innerHTML = html || '';
+}
+
+function renderChartKehadiran(data) {
+  const svg = document.getElementById('chartKehadiran');
+  if (!svg || !data || !data.length) return;
+  const w = 300, h = 150, padX = 20, padY = 22;
+  const maxVal = 100;
+  const stepX = (w - padX * 2) / (data.length - 1);
+
+  const points = data.map(function (d, i) {
+    const x = padX + i * stepX;
+    const y = h - padY - (d.persen / maxVal) * (h - padY * 2);
+    return { x: x, y: y, label: d.label, persen: d.persen };
+  });
+
+  const linePath = points.map(function (p, i) { return (i === 0 ? 'M' : 'L') + p.x + ',' + p.y; }).join(' ');
+  const areaPath = linePath + ' L' + points[points.length-1].x + ',' + (h-padY) + ' L' + points[0].x + ',' + (h-padY) + ' Z';
+
+  let svgContent = '<defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0%" stop-color="#16a34a" stop-opacity="0.3"/>' +
+    '<stop offset="100%" stop-color="#16a34a" stop-opacity="0"/></linearGradient></defs>';
+  svgContent += '<path d="' + areaPath + '" fill="url(#chartGrad)"/>';
+  svgContent += '<path d="' + linePath + '" fill="none" stroke="#16a34a" stroke-width="2.5"/>';
+  points.forEach(function (p) {
+    svgContent += '<circle cx="' + p.x + '" cy="' + p.y + '" r="3.5" fill="#16a34a"/>';
+    svgContent += '<text x="' + p.x + '" y="' + (p.y - 10) + '" font-size="9" fill="#166534" text-anchor="middle" font-weight="700">' + p.persen + '%</text>';
+    svgContent += '<text x="' + p.x + '" y="' + (h - 5) + '" font-size="9" fill="#6b7280" text-anchor="middle">' + p.label + '</text>';
+  });
+  svg.innerHTML = svgContent;
+}
+
+function renderUpcomingKegiatan(list) {
+  const el = document.getElementById('upcomingKegiatanList');
+  if (!list || !list.length) { el.innerHTML = '<div class="text-muted" style="font-size:12.5px;">Belum ada kegiatan mendatang.</div>'; return; }
+  const bulanSingkat = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  el.innerHTML = list.map(function (k) {
+    const d = new Date(k.Tanggal);
+    const dd = isNaN(d) ? '-' : d.getDate();
+    const mm = isNaN(d) ? '-' : bulanSingkat[d.getMonth()];
+    return '<div class="upcoming-item">' +
+      '<div class="upcoming-date-box"><div class="d">' + dd + '</div><div class="m">' + mm + '</div></div>' +
+      '<div class="flex-grow-1">' +
+        '<div style="font-weight:600;font-size:13px;">' + k.Nama + '</div>' +
+        '<div class="text-muted" style="font-size:11.5px;">' + formatTanggalIndo(k.Tanggal) + '<br>' + (k.Lokasi || '-') + '</div>' +
+      '</div>' +
+      '<span class="upcoming-badge">' + k.hariLagi + '</span>' +
+    '</div>';
+  }).join('');
 }
 
 function formatTanggalIndo(dateStr) {
@@ -775,7 +957,6 @@ function formatTanggalIndo(dateStr) {
   const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
   return hari[d.getDay()] + ', ' + d.getDate() + ' ' + bulan[d.getMonth()] + ' ' + d.getFullYear();
 }
-
 /* =========================================================
  *  DATA GURU
  * ========================================================= */
