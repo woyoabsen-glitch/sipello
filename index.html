@@ -247,6 +247,7 @@
     <li><a href="#" class="nav-link-item" data-page="KegiatanMGMP"><i class="bi bi-calendar-event-fill"></i> Kegiatan MGMP</a></li>
     <li><a href="#" class="nav-link-item" data-page="ScanQR"><i class="bi bi-qr-code-scan"></i> Scan QR</a></li>
     <li><a href="#" class="nav-link-item" data-page="Rekap"><i class="bi bi-bar-chart-fill"></i> Rekap Kehadiran</a></li>
+    <li><a href="#" class="nav-link-item" data-page="WhatsApp"><i class="bi bi-whatsapp"></i> WhatsApp</a></li>
     <li><a href="#" class="nav-link-item" data-page="Pengaturan"><i class="bi bi-gear-fill"></i> Pengaturan</a></li>
     <li><a href="#" onclick="handleLogout(); return false;"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
   </ul>
@@ -674,6 +675,50 @@
     </div>
   </div>
 </div>
+<div class="page-section" id="page-WhatsApp">
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="sp-card">
+        <h5><i class="bi bi-whatsapp text-success me-1"></i> Pengaturan WhatsApp (Fonnte)</h5>
+        <div class="mb-3">
+          <label class="form-label small">Token Fonnte <span id="waTokenInfo" class="text-muted"></span></label>
+          <input type="password" class="form-control" id="waToken" placeholder="Kosongkan jika tidak diubah" autocomplete="off">
+        </div>
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="waAktif">
+          <label class="form-check-label small" for="waAktif">Aktifkan pesan otomatis saat guru hadir</label>
+        </div>
+        <div class="mb-3"><label class="form-label small">Pesan ke Guru (hadir)</label><textarea class="form-control" rows="3" id="waTplGuru"></textarea></div>
+        <div class="mb-3"><label class="form-label small">Pesan ke Kepsek (guru hadir)</label><textarea class="form-control" rows="3" id="waTplKepsek"></textarea></div>
+        <div class="mb-2"><label class="form-label small">Pesan ke Kepsek (guru tidak hadir)</label><textarea class="form-control" rows="4" id="waTplAbsen"></textarea></div>
+        <div class="small text-muted mb-3">Kata kunci: {nama} {sekolah} {kegiatan} {tanggal} {jam} {kepsek} {daftar}</div>
+        <button class="btn btn-sp-green" onclick="saveWaForm()"><i class="bi bi-check-lg"></i> Simpan</button>
+        <hr>
+        <div class="input-group">
+          <input class="form-control" id="waTestHp" placeholder="No HP untuk tes, mis. 0853xxxx">
+          <button class="btn btn-outline-success" onclick="waTest()">Kirim Tes</button>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="sp-card mb-3">
+        <h5><i class="bi bi-megaphone-fill text-success me-1"></i> Kirim Pengumuman</h5>
+        <div class="row g-2 mb-2">
+          <div class="col-6"><select class="form-select" id="waTarget"><option value="guru">Semua Guru</option><option value="kepsek">Semua Kepsek</option><option value="semua">Guru + Kepsek</option></select></div>
+          <div class="col-6"><select class="form-select" id="waSekolah"><option value="">Semua Sekolah</option></select></div>
+        </div>
+        <textarea class="form-control mb-2" rows="5" id="waPesan" placeholder="Tulis pengumuman..."></textarea>
+        <button class="btn btn-sp-green" onclick="waKirimPengumumanForm()"><i class="bi bi-send-fill"></i> Kirim</button>
+      </div>
+      <div class="sp-card">
+        <h5><i class="bi bi-person-x-fill text-danger me-1"></i> Notifikasi Guru Tidak Hadir</h5>
+        <p class="small text-muted">Pilih kegiatan, lalu kirim ke kepsek guru yang belum absen (satu pesan per sekolah berisi daftar nama).</p>
+        <select class="form-select mb-2" id="waKegiatan"></select>
+        <button class="btn btn-outline-danger" onclick="waKirimAbsenForm()"><i class="bi bi-bell-fill"></i> Kirim ke Kepsek</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="page-section" id="page-Pengaturan">
   <div class="sp-card" style="max-width:600px;">
     <h5><i class="bi bi-gear-fill text-success me-1"></i> Pengaturan Aplikasi</h5>
@@ -811,6 +856,7 @@ function goToPage(pageName) {
   if (pageName === 'ScanQR') startScannerPage();
   if (pageName === 'Rekap') { populateRekapFilters(); loadRekap(); }
   if (pageName === 'Pengaturan') loadPengaturan();
+  if (pageName === 'WhatsApp') loadWaPage();
 
   if (pageName !== 'ScanQR' && scannerRunning) stopScanner();
 }
@@ -1537,6 +1583,58 @@ function savePengaturanForm() {
   };
   popupDuration = parseInt(data.DurasiPopup, 10);
   callAPI('savePengaturan', [data]).then(function () { alert('Pengaturan berhasil disimpan.'); });
+}
+/* =========================================================
+ *  WHATSAPP (Fonnte)
+ * ========================================================= */
+function loadWaPage() {
+  callAPI('getWaConfig', [SESSION_TOKEN]).then(function (c) {
+    document.getElementById('waAktif').checked = (c.WA_Aktif === 'Ya');
+    document.getElementById('waTplGuru').value = c.WA_PesanHadirGuru;
+    document.getElementById('waTplKepsek').value = c.WA_PesanHadirKepsek;
+    document.getElementById('waTplAbsen').value = c.WA_PesanAbsenKepsek;
+    document.getElementById('waTokenInfo').innerText = c.TokenTersimpan ? '(sudah tersimpan)' : '(belum diisi)';
+  }).catch(function (e) { alert(e.message); });
+  callAPI('getSekolahList').then(function (list) {
+    const sel = document.getElementById('waSekolah');
+    sel.innerHTML = '<option value="">Semua Sekolah</option>' + list.map(function (x) { return '<option>' + String(x.NamaSekolah).replace(/</g, '&lt;') + '</option>'; }).join('');
+  });
+  callAPI('getKegiatanList').then(function (list) {
+    document.getElementById('waKegiatan').innerHTML = list.slice().reverse().map(function (k) {
+      return '<option value="' + k.ID + '">' + String(k.Nama).replace(/</g, '&lt;') + '</option>';
+    }).join('');
+  });
+}
+function saveWaForm() {
+  const data = {
+    WA_Aktif: document.getElementById('waAktif').checked ? 'Ya' : 'Tidak',
+    WA_PesanHadirGuru: document.getElementById('waTplGuru').value,
+    WA_PesanHadirKepsek: document.getElementById('waTplKepsek').value,
+    WA_PesanAbsenKepsek: document.getElementById('waTplAbsen').value,
+    FonnteToken: document.getElementById('waToken').value
+  };
+  callAPI('saveWaConfig', [SESSION_TOKEN, data]).then(function () {
+    document.getElementById('waToken').value = '';
+    alert('Pengaturan WhatsApp tersimpan.'); loadWaPage();
+  }).catch(function (e) { alert(e.message); });
+}
+function waTest() {
+  const hp = document.getElementById('waTestHp').value.trim();
+  if (!hp) return alert('Isi nomor HP tes.');
+  callAPI('waTestKirim', [SESSION_TOKEN, hp]).then(function (r) { alert(r.message); }).catch(function (e) { alert(e.message); });
+}
+function waKirimPengumumanForm() {
+  const pesan = document.getElementById('waPesan').value.trim();
+  if (!pesan) return alert('Isi pengumuman dulu.');
+  if (!confirm('Kirim pengumuman ke tujuan terpilih?')) return;
+  callAPI('waKirimPengumuman', [SESSION_TOKEN, pesan, document.getElementById('waTarget').value, document.getElementById('waSekolah').value])
+    .then(function (r) { alert(r.message); }).catch(function (e) { alert(e.message); });
+}
+function waKirimAbsenForm() {
+  const id = document.getElementById('waKegiatan').value;
+  if (!id) return alert('Pilih kegiatan.');
+  if (!confirm('Kirim notifikasi tidak hadir ke kepsek?')) return;
+  callAPI('waKirimNotifTidakHadir', [SESSION_TOKEN, id]).then(function (r) { alert(r.message); }).catch(function (e) { alert(e.message); });
 }
 </script>
 </body>
