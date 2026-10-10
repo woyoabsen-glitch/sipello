@@ -1021,6 +1021,7 @@ function loadDataGuru() {
         '<td><button class="btn btn-sm btn-sp-outline" onclick="showQR(\'' + g.QRUrl + '\',\'' + g.Nama.replace(/'/g,"") + '\')"><i class="bi bi-qr-code"></i></button></td>' +
         '<td>' +
           '<button class="btn btn-sm btn-sp-outline me-1" onclick=\'editGuru(' + JSON.stringify(g) + ')\'><i class="bi bi-pencil"></i></button>' +
+          (g.HasAccount ? '<button class="btn btn-sm btn-outline-warning me-1" title="Atur ulang password" onclick="resetPwGuru(\'' + g.ID + '\')"><i class="bi bi-key"></i></button>' : '') +
           '<button class="btn btn-sm btn-outline-danger" onclick="removeGuru(\'' + g.ID + '\')"><i class="bi bi-trash"></i></button>' +
         '</td></tr>';
     }).join('');
@@ -1635,6 +1636,11 @@ function waKirimAbsenForm() {
   if (!id) return alert('Pilih kegiatan.');
   if (!confirm('Kirim notifikasi tidak hadir ke kepsek?')) return;
   callAPI('waKirimNotifTidakHadir', [SESSION_TOKEN, id]).then(function (r) { alert(r.message); }).catch(function (e) { alert(e.message); });
+}
+function resetPwGuru(id) {
+  const pw = prompt('Masukkan password baru untuk guru ini (minimal 6 karakter):');
+  if (!pw) return;
+  callAPI('adminSetGuruPassword', [SESSION_TOKEN, id, pw]).then(function (r) { alert(r.message); }).catch(function (e) { alert(e.message); });
 }
 </script>
 </body>
