@@ -64,9 +64,9 @@ function showAuthError(msg) {
 }
 
 function handleGuruLogin() {
-  const hp = document.getElementById('loginHp').value.trim();
+  const hp = document.getElementById('loginHp').value.trim().toLowerCase();
   const pw = document.getElementById('loginPw').value;
-  if (!hp || !pw) { showAuthError('Nomor HP dan password wajib diisi.'); return; }
+  if (!hp || !pw) { showAuthError('Username dan password wajib diisi.'); return; }
 
   const btn = document.getElementById('btnLogin');
   btn.innerText = 'Memproses...'; btn.disabled = true;
@@ -93,7 +93,9 @@ function goToFaceCapture() {
   const pw = document.getElementById('regPw').value;
   const pw2 = document.getElementById('regPw2').value;
 
-  if (!nama || !hp || !pw) { showAuthError('Nama, Nomor HP, dan Password wajib diisi.'); return; }
+  const uname = document.getElementById('regUsername').value.trim().toLowerCase();
+  if (!nama || !uname || !hp || !pw) { showAuthError('Nama, Username, Nomor HP, dan Password wajib diisi.'); return; }
+  if (!/^[a-z0-9._]{4,20}$/.test(uname)) { showAuthError('Username 4-20 karakter: huruf kecil, angka, titik atau garis bawah (tanpa spasi).'); return; }
   if (pw.length < 6) { showAuthError('Password minimal 6 karakter.'); return; }
   if (pw !== pw2) { showAuthError('Konfirmasi password tidak cocok.'); return; }
 
@@ -127,6 +129,7 @@ function submitRegister() {
   if (!regDescriptor) { showAuthError('Rekam wajah terlebih dahulu.'); return; }
   const data = {
     Nama: document.getElementById('regNama').value.trim(),
+    Username: document.getElementById('regUsername').value.trim().toLowerCase(),
     JenisKelamin: document.getElementById('regJK').value,
     NomorHP: document.getElementById('regHp').value.trim(),
     Password: document.getElementById('regPw').value,
@@ -148,9 +151,9 @@ function submitRegister() {
     stopStream(regStream); regStream = null;
     document.getElementById('registerFormStep2').classList.add('d-none');
     document.getElementById('loginForm').classList.remove('d-none');
-    document.getElementById('loginHp').value = data.NomorHP;
+    document.getElementById('loginHp').value = data.Username;
     const okBox = document.getElementById('authSuccess');
-    okBox.innerText = 'Pendaftaran berhasil! Silakan login dengan Nomor HP & Password Anda.';
+    okBox.innerText = 'Pendaftaran berhasil! Silakan login dengan Username & Password Anda.';
     okBox.classList.remove('d-none');
   }).catch(function (err) {
     btn.innerText = 'Daftar Sekarang'; btn.disabled = false;
