@@ -102,7 +102,7 @@
 
     <!-- LOGIN FORM -->
     <div id="loginForm">
-      <div class="mb-2"><label class="form-label">Nomor HP</label><input type="tel" class="form-control" id="loginHp" placeholder="08123456789"></div>
+      <div class="mb-2"><label class="form-label">Username</label><input type="text" class="form-control" id="loginHp" placeholder="username Anda" autocapitalize="none" autocomplete="username"></div>
       <div class="mb-3"><label class="form-label">Password</label><input type="password" class="form-control" id="loginPw" placeholder="••••••••"></div>
       <button class="btn-sp" id="btnLogin" onclick="handleGuruLogin()">Masuk</button>
       <div class="auth-switch">Belum punya akun? <a href="#" onclick="showAuthScreen('register'); return false;">Daftar di sini</a></div>
@@ -113,6 +113,7 @@
       <h6 class="fw-bold mb-2" style="font-size:13px;color:var(--sp-green-700);">Biodata Diri</h6>
       <div class="row g-2">
         <div class="col-12"><label class="form-label">Nama Lengkap</label><input class="form-control" id="regNama"></div>
+        <div class="col-12"><label class="form-label">Username (untuk login)</label><input class="form-control" id="regUsername" placeholder="mis. edoy.hagane" autocapitalize="none" autocomplete="off"><div class="text-muted" style="font-size:11px;">4-20 karakter: huruf kecil, angka, titik/garis bawah. Tanpa spasi.</div></div>
         <div class="col-6"><label class="form-label">Jenis Kelamin</label>
           <select class="form-select" id="regJK"><option>Laki-laki</option><option>Perempuan</option></select>
         </div>
@@ -172,6 +173,11 @@
         <div><div class="num" id="berandaKegiatanAktif">-</div><div class="lbl">Kegiatan Aktif</div></div></div></div>
     </div>
     <button class="btn-sp mb-3" onclick="goToGuruPage('Absensi')"><i class="bi bi-camera-fill"></i> Absensi Sekarang</button>
+    <div class="gcard text-center">
+      <h6>Kartu QR Saya</h6>
+      <img id="berandaQr" src="" alt="QR" style="width:170px;height:170px;">
+      <p class="text-muted mb-0 mt-1" style="font-size:11.5px;">Tunjukkan QR ini ke petugas scan MGMP sebagai alternatif absensi wajah.</p>
+    </div>
     <div class="gcard">
       <h6>Riwayat Kehadiran Terakhir</h6>
       <div id="berandaRiwayatList"><div class="text-muted" style="font-size:12.5px;">Memuat...</div></div>
