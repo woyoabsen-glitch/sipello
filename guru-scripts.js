@@ -522,21 +522,75 @@ function renderQrGuru(p) {
   }
 }
 
+/* ---------- CROP FOTO (Cropper.js; jika gagal dimuat, pakai resize biasa) ---------- */
+let cropperInst = null, cropCallback = null;
+
+function openCropper(file, callback) {
+  if (typeof Cropper === 'undefined') {
+    resizeImageToDataUrl(file, 600).then(callback).catch(function (err) { alert(err.message); });
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function () {
+    const img = document.getElementById('cropImage');
+    if (cropperInst) { cropperInst.destroy(); cropperInst = null; }
+    img.src = reader.result;
+    cropCallback = callback;
+    document.getElementById('cropModal').style.display = 'flex';
+    img.onload = function () {
+      cropperInst = new Cropper(img, {
+        aspectRatio: 1, viewMode: 1, dragMode: 'move', autoCropArea: 0.9,
+        guides: false, center: false, highlight: false, background: false,
+        cropBoxMovable: false, cropBoxResizable: false, toggleDragModeOnDblclick: false
+      });
+    };
+  };
+  reader.onerror = function () { alert('Gagal membaca file foto.'); };
+  reader.readAsDataURL(file);
+}
+
+function cropAction(a) {
+  if (!cropperInst) return;
+  if (a === 'zoomIn') cropperInst.zoom(0.1);
+  if (a === 'zoomOut') cropperInst.zoom(-0.1);
+  if (a === 'rotate') cropperInst.rotate(90);
+  if (a === 'reset') cropperInst.reset();
+}
+
+function cropClose() {
+  document.getElementById('cropModal').style.display = 'none';
+  if (cropperInst) { cropperInst.destroy(); cropperInst = null; }
+  document.getElementById('regFotoFile').value = '';
+  document.getElementById('profilFotoFile').value = '';
+}
+function cropCancel() { cropCallback = null; cropClose(); }
+
+function cropConfirm() {
+  if (!cropperInst) return;
+  const canvas = cropperInst.getCroppedCanvas({ width: 600, height: 600, fillColor: '#fff', imageSmoothingQuality: 'high' });
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+  const cb = cropCallback; cropCallback = null;
+  cropClose();
+  if (cb) cb(dataUrl);
+}
+
+function afterCropRegister(dataUrl) {
+  regProfilePhoto = dataUrl;
+  document.getElementById('regFotoPreview').src = dataUrl;
+}
+
+function afterCropProfil(dataUrl) {
+  document.getElementById('profilFoto').src = dataUrl;
+  callAPI('updateGuruProfile', [GURU_TOKEN, { FotoBase64: dataUrl.split(',')[1], FotoMime: 'image/jpeg' }]).then(function (res) {
+    if (!res.success) { alert(res.message || 'Gagal menyimpan foto.'); loadProfil(); return; }
+    alert(res.message || 'Foto diperbarui.');
+    if (res.fotoUrl) document.getElementById('topbarFoto').src = res.fotoUrl;
+    loadProfil();
+  }).catch(function (err) { alert('Gagal mengganti foto: ' + err.message); });
+}
+
 document.addEventListener('change', function (e) {
-  if (e.target && e.target.id === 'regFotoFile' && e.target.files[0]) {
-    resizeImageToDataUrl(e.target.files[0], 600).then(function (dataUrl) {
-      regProfilePhoto = dataUrl;
-      document.getElementById('regFotoPreview').src = dataUrl;
-    }).catch(function (err) { alert(err.message); });
-  }
-  if (e.target && e.target.id === 'profilFotoFile' && e.target.files[0]) {
-    resizeImageToDataUrl(e.target.files[0], 600).then(function (dataUrl) {
-      document.getElementById('profilFoto').src = dataUrl;
-      return callAPI('updateGuruProfile', [GURU_TOKEN, { FotoBase64: dataUrl.split(',')[1], FotoMime: 'image/jpeg' }]);
-    }).then(function (res) {
-      alert(res.message || 'Foto diperbarui.');
-      loadProfil();
-      if (res.fotoUrl) document.getElementById('topbarFoto').src = res.fotoUrl;
-    }).catch(function (err) { alert('Gagal mengganti foto: ' + err.message); });
-  }
+  if (!e.target) return;
+  if (e.target.id === 'regFotoFile' && e.target.files[0]) openCropper(e.target.files[0], afterCropRegister);
+  if (e.target.id === 'profilFotoFile' && e.target.files[0]) openCropper(e.target.files[0], afterCropProfil);
 });
