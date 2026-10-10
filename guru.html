@@ -106,12 +106,20 @@
       <div class="mb-3"><label class="form-label">Password</label><input type="password" class="form-control" id="loginPw" placeholder="••••••••"></div>
       <button class="btn-sp" id="btnLogin" onclick="handleGuruLogin()">Masuk</button>
       <div class="auth-switch">Belum punya akun? <a href="#" onclick="showAuthScreen('register'); return false;">Daftar di sini</a></div>
-      <div class="text-center mt-3" style="font-size:10px;color:#9ca3af;">Portal Guru v2.1 (login Username)</div>
+      <div class="text-center mt-3" style="font-size:10px;color:#9ca3af;">Portal Guru v2.2</div>
     </div>
 
     <!-- REGISTER FORM (step 1: biodata) -->
     <div id="registerFormStep1" class="d-none">
       <h6 class="fw-bold mb-2" style="font-size:13px;color:var(--sp-green-700);">Biodata Diri</h6>
+      <div class="text-center mb-3">
+        <img id="regFotoPreview" src="https://ui-avatars.com/api/?background=e5e7eb&color=6b7280&name=%2B" alt="Foto profil" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid #dcfce7;">
+        <div class="mt-2">
+          <label for="regFotoFile" class="btn btn-sm btn-outline-success" style="border-radius:10px;font-weight:600;"><i class="bi bi-camera-fill"></i> Upload Foto Profil</label>
+          <input type="file" id="regFotoFile" accept="image/*" class="d-none">
+        </div>
+        <div class="text-muted" style="font-size:11px;">Foto ini tampil di profil Anda. Pilih foto wajah yang jelas (JPG/PNG).</div>
+      </div>
       <div class="row g-2">
         <div class="col-12"><label class="form-label">Nama Lengkap</label><input class="form-control" id="regNama"></div>
         <div class="col-12"><label class="form-label">Username (untuk login)</label><input class="form-control" id="regUsername" placeholder="mis. edoy.hagane" autocapitalize="none" autocomplete="off"><div class="text-muted" style="font-size:11px;">4-20 karakter: huruf kecil, angka, titik/garis bawah. Tanpa spasi.</div></div>
@@ -176,7 +184,8 @@
     <button class="btn-sp mb-3" onclick="goToGuruPage('Absensi')"><i class="bi bi-camera-fill"></i> Absensi Sekarang</button>
     <div class="gcard text-center">
       <h6>Kartu QR Saya</h6>
-      <img id="berandaQr" src="" alt="QR" style="width:170px;height:170px;">
+      <div id="berandaQr" style="display:inline-block;padding:10px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;min-width:150px;min-height:150px;"></div>
+      <div class="fw-semibold mt-2" style="font-size:12.5px;" id="berandaQrLabel"></div>
       <p class="text-muted mb-0 mt-1" style="font-size:11.5px;">Tunjukkan QR ini ke petugas scan MGMP sebagai alternatif absensi wajah.</p>
     </div>
     <div class="gcard">
@@ -189,6 +198,10 @@
   <div class="guru-page" id="gpage-Profil">
     <div class="gcard text-center">
       <img class="profile-photo-lg mb-2" id="profilFoto" src="">
+      <div class="mb-2">
+        <label for="profilFotoFile" class="btn btn-sm btn-outline-success" style="border-radius:10px;font-weight:600;"><i class="bi bi-camera-fill"></i> Ganti Foto Profil</label>
+        <input type="file" id="profilFotoFile" accept="image/*" class="d-none">
+      </div>
       <h6 class="mb-0" id="profilNamaDisplay">-</h6>
       <p class="text-muted" style="font-size:12px;" id="profilSekolahDisplay">-</p>
     </div>
@@ -270,6 +283,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-<script src="guru-scripts.js?v=20261010"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="guru-scripts.js?v=20261011"></script>
 </body>
 </html>
