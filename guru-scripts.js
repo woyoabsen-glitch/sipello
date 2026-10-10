@@ -12,7 +12,7 @@ let GURU_TOKEN = localStorage.getItem('sipello_guru_token') || null;
 let GURU_PROFILE = null;
 let modelsLoaded = false;
 let regStream = null, updStream = null, absenStream = null;
-let regDescriptor = null, regFotoBase64 = null;
+let regDescriptor = null, regFotoBase64 = null, regProfilePhoto = null;
 let absenWatchId = null;
 let currentLat = null, currentLng = null;
 let activeKegiatanCache = null;
@@ -138,7 +138,7 @@ function submitRegister() {
     KepsekNama: document.getElementById('regKepsekNama').value.trim(),
     KepsekHP: document.getElementById('regKepsekHp').value.trim(),
     FaceDescriptor: regDescriptor,
-    FotoBase64: regFotoBase64 ? regFotoBase64.split(',')[1] : '',
+    FotoBase64: (regProfilePhoto || regFotoBase64) ? (regProfilePhoto || regFotoBase64).split(',')[1] : '',
     FotoMime: 'image/jpeg'
   };
 
@@ -257,6 +257,10 @@ function loadBeranda() {
       return '<div class="riwayat-item"><div><b>' + r.Tanggal + '</b><br><span class="text-muted" style="font-size:11.5px;">Pukul ' + r.Jam + '</span></div>' +
         '<span class="badge bg-success">HADIR</span></div>';
     }).join('');
+  });
+
+  callAPI('getGuruProfile', [GURU_TOKEN]).then(function (res) {
+    if (res.success) { GURU_PROFILE = res.profile; renderQrGuru(res.profile); }
   });
 
   callAPI('getDashboardData').then(function (data) {
@@ -481,3 +485,58 @@ function handleGuruLogout() {
   document.getElementById('authView').classList.remove('d-none');
   showAuthScreen('login');
 }
+
+/* =========================================================
+ *  FOTO PROFIL (upload + resize) & KARTU QR
+ * ========================================================= */
+function resizeImageToDataUrl(file, maxPx) {
+  return new Promise(function (resolve, reject) {
+    const reader = new FileReader();
+    reader.onerror = function () { reject(new Error('Gagal membaca file foto.')); };
+    reader.onload = function () {
+      const img = new Image();
+      img.onerror = function () { reject(new Error('File bukan gambar yang valid.')); };
+      img.onload = function () {
+        const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/jpeg', 0.85));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderQrGuru(p) {
+  const box = document.getElementById('berandaQr');
+  const value = p.QRValue || p.ID;
+  document.getElementById('berandaQrLabel').innerText = p.Nama || '';
+  box.innerHTML = '';
+  try {
+    if (typeof QRCode === 'undefined') throw new Error('lib');
+    new QRCode(box, { text: String(value), width: 160, height: 160, correctLevel: QRCode.CorrectLevel.M });
+  } catch (e) {
+    box.innerHTML = '<img src="' + (p.QRUrl || '') + '" alt="QR" style="width:160px;height:160px;">';
+  }
+}
+
+document.addEventListener('change', function (e) {
+  if (e.target && e.target.id === 'regFotoFile' && e.target.files[0]) {
+    resizeImageToDataUrl(e.target.files[0], 600).then(function (dataUrl) {
+      regProfilePhoto = dataUrl;
+      document.getElementById('regFotoPreview').src = dataUrl;
+    }).catch(function (err) { alert(err.message); });
+  }
+  if (e.target && e.target.id === 'profilFotoFile' && e.target.files[0]) {
+    resizeImageToDataUrl(e.target.files[0], 600).then(function (dataUrl) {
+      document.getElementById('profilFoto').src = dataUrl;
+      return callAPI('updateGuruProfile', [GURU_TOKEN, { FotoBase64: dataUrl.split(',')[1], FotoMime: 'image/jpeg' }]);
+    }).then(function (res) {
+      alert(res.message || 'Foto diperbarui.');
+      loadProfil();
+      if (res.fotoUrl) document.getElementById('topbarFoto').src = res.fotoUrl;
+    }).catch(function (err) { alert('Gagal mengganti foto: ' + err.message); });
+  }
+});
