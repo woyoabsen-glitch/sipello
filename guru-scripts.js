@@ -89,7 +89,7 @@ function handleGuruLogin() {
 /* ---------- PENDAFTARAN: STEP 2 - REKAM WAJAH ---------- */
 function goToFaceCapture() {
   const nama = document.getElementById('regNama').value.trim();
-  const hp = document.getElementById('regHp').value.trim();
+  const hp = hpToFull(document.getElementById('regHp').value);
   const pw = document.getElementById('regPw').value;
   const pw2 = document.getElementById('regPw2').value;
 
@@ -131,12 +131,12 @@ function submitRegister() {
     Nama: document.getElementById('regNama').value.trim(),
     Username: document.getElementById('regUsername').value.trim().toLowerCase(),
     JenisKelamin: document.getElementById('regJK').value,
-    NomorHP: document.getElementById('regHp').value.trim(),
+    NomorHP: hpToFull(document.getElementById('regHp').value),
     Password: document.getElementById('regPw').value,
     Sekolah: document.getElementById('regSekolah').value.trim(),
     AlamatSekolah: document.getElementById('regAlamatSekolah').value.trim(),
     KepsekNama: document.getElementById('regKepsekNama').value.trim(),
-    KepsekHP: document.getElementById('regKepsekHp').value.trim(),
+    KepsekHP: hpToFull(document.getElementById('regKepsekHp').value),
     FaceDescriptor: regDescriptor,
     FotoBase64: (regProfilePhoto || regFotoBase64) ? (regProfilePhoto || regFotoBase64).split(',')[1] : '',
     FotoMime: 'image/jpeg'
@@ -281,22 +281,22 @@ function loadProfil() {
     document.getElementById('profilNamaDisplay').innerText = p.Nama;
     document.getElementById('profilSekolahDisplay').innerText = p.Sekolah || '-';
     document.getElementById('profilNama').value = p.Nama || '';
-    document.getElementById('profilHp').value = p.NomorHP || '';
+    document.getElementById('profilHp').value = hpToLocal(p.NomorHP);
     document.getElementById('profilSekolah').value = p.Sekolah || '';
     document.getElementById('profilAlamatSekolah').value = p.AlamatSekolah || '';
     document.getElementById('profilKepsekNama').value = p.KepsekNama || '';
-    document.getElementById('profilKepsekHp').value = p.KepsekHP || '';
+    document.getElementById('profilKepsekHp').value = hpToLocal(p.KepsekHP);
   });
 }
 
 function saveProfilGuru() {
   const data = {
     Nama: document.getElementById('profilNama').value.trim(),
-    NomorHP: document.getElementById('profilHp').value.trim(),
+    NomorHP: hpToFull(document.getElementById('profilHp').value),
     Sekolah: document.getElementById('profilSekolah').value.trim(),
     AlamatSekolah: document.getElementById('profilAlamatSekolah').value.trim(),
     KepsekNama: document.getElementById('profilKepsekNama').value.trim(),
-    KepsekHP: document.getElementById('profilKepsekHp').value.trim()
+    KepsekHP: hpToFull(document.getElementById('profilKepsekHp').value)
   };
   callAPI('updateGuruProfile', [GURU_TOKEN, data]).then(function (res) {
     alert(res.message || 'Profil disimpan.');
@@ -593,4 +593,25 @@ document.addEventListener('change', function (e) {
   if (!e.target) return;
   if (e.target.id === 'regFotoFile' && e.target.files[0]) openCropper(e.target.files[0], afterCropRegister);
   if (e.target.id === 'profilFotoFile' && e.target.files[0]) openCropper(e.target.files[0], afterCropProfil);
+});
+
+
+/* =========================================================
+ *  NOMOR HP: tampil +62 otomatis (ketik tanpa 0), simpan 62xxxxxxxxxx
+ * ========================================================= */
+function hpToLocal(v) {
+  let d = String(v === undefined || v === null ? '' : v).replace(/\D/g, '');
+  if (d.indexOf('62') === 0) d = d.substring(2);
+  d = d.replace(/^0+/, '');
+  return d;
+}
+function hpToFull(v) {
+  const l = hpToLocal(v);
+  return l ? '62' + l : '';
+}
+document.addEventListener('input', function (e) {
+  if (e.target && ['regHp', 'regKepsekHp', 'profilHp', 'profilKepsekHp'].indexOf(e.target.id) !== -1) {
+    const l = hpToLocal(e.target.value);
+    if (e.target.value !== l) e.target.value = l;
+  }
 });
