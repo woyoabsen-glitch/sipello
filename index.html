@@ -677,7 +677,7 @@
 </div>
 <div class="page-section" id="page-WhatsApp">
   <div class="row g-3">
-    <div class="col-lg-6">
+    <div class="col-lg-6" id="waConfigCol">
       <div class="sp-card">
         <h5><i class="bi bi-whatsapp text-success me-1"></i> Pengaturan WhatsApp (Fonnte)</h5>
         <div class="mb-3">
@@ -1588,8 +1588,14 @@ function savePengaturanForm() {
 /* =========================================================
  *  WHATSAPP (Fonnte)
  * ========================================================= */
+function isAdminRole() {
+  const r = String((CURRENT_USER && CURRENT_USER.role) || '').toLowerCase();
+  return ['admin', 'developer', 'superadmin'].indexOf(r) !== -1;
+}
 function loadWaPage() {
-  callAPI('getWaConfig', [SESSION_TOKEN]).then(function (c) {
+  const cfgCol = document.getElementById('waConfigCol');
+  if (cfgCol) cfgCol.style.display = isAdminRole() ? '' : 'none';
+  if (isAdminRole()) callAPI('getWaConfig', [SESSION_TOKEN]).then(function (c) {
     document.getElementById('waAktif').checked = (c.WA_Aktif === 'Ya');
     document.getElementById('waTplGuru').value = c.WA_PesanHadirGuru;
     document.getElementById('waTplKepsek').value = c.WA_PesanHadirKepsek;
