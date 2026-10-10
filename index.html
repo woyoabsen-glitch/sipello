@@ -5,9 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SIPELLO - Sistem Informasi Presensi Elektronik</title>
 <link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
   :root{
     --sp-green-900:#0f3d24;
@@ -28,30 +33,46 @@
   body{background:var(--sp-bg); color:var(--sp-text); margin:0;}
   .d-none{display:none !important;}
 
-  /* ---------- LOGIN ---------- */
-  #loginView{
-    min-height:100vh; display:flex; align-items:center; justify-content:center;
-    background:linear-gradient(135deg,var(--sp-green-900),var(--sp-green-700));
-    padding:20px;
+  /* ---------- LOGIN (tema emas-hijau SIPELLO) ---------- */
+  .login-scene{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; position:relative; overflow:hidden;
+    background:linear-gradient(rgba(3,18,28,.18),rgba(3,18,28,.30)),url('login-bg.jpg') center/cover no-repeat,#06182b;
   }
-  .login-card{
-    background:#fff; border-radius:20px; padding:40px 36px; width:100%; max-width:400px;
-    box-shadow:0 20px 60px rgba(0,0,0,.25); text-align:center;
+  .login-art{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
+  .login-card, .auth-card{
+    position:relative; z-index:2; width:100%; max-width:440px; text-align:center;
+    background:linear-gradient(180deg,#fdfbf6,#f8f4ea); border:2px solid #c9a24b; border-radius:22px; padding:30px 34px 22px;
+    box-shadow:0 0 0 4px rgba(201,162,75,.18),0 24px 70px rgba(0,0,0,.55),0 0 40px rgba(201,162,75,.25);
   }
-  .login-card .brand-icon{
-    width:64px; height:64px; border-radius:16px; background:var(--sp-green-600);
-    display:flex; align-items:center; justify-content:center; margin:0 auto 14px; color:#fff; font-size:30px;
+  .login-card .emblem, .auth-card .emblem{width:132px; height:auto; display:block; margin:0 auto 4px; filter:drop-shadow(0 4px 10px rgba(0,0,0,.18));}
+  .login-card h3, .auth-card h3{
+    font-family:'Cinzel','Times New Roman',serif !important; font-weight:800; font-size:40px; letter-spacing:1.5px; line-height:1.05; margin:0 0 6px;
+    background:linear-gradient(180deg,#14532d 55%,#b8892b 130%); -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
   }
-  .login-card h3{font-weight:800; color:var(--sp-green-800); margin-bottom:2px;}
-  .login-card p.subtitle{color:var(--sp-muted); font-size:13px; margin-bottom:24px;}
-  .login-card .form-control{border-radius:10px; padding:11px 14px; border:1px solid var(--sp-border);}
+  .login-card .subtitle-main, .auth-card .subtitle-main{font-weight:700; font-size:15.5px; color:#1f2937; margin:0;}
+  .login-card .subtitle-sub, .auth-card .subtitle-sub{
+    display:flex; align-items:center; gap:10px; color:#4b5563; font-size:13px; margin:5px 0 20px;
+  }
+  .subtitle-sub::before, .subtitle-sub::after{content:""; flex:1; height:1.5px; background:linear-gradient(90deg,transparent,#c9a24b);}
+  .subtitle-sub::after{background:linear-gradient(270deg,transparent,#c9a24b);}
+  .login-field{position:relative; margin-bottom:12px; text-align:left;}
+  .login-field > i.lead-ico{position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#4b5563; font-size:18px; pointer-events:none;}
+  .login-field .form-control{
+    height:52px; padding:10px 44px 10px 46px; border-radius:12px; background:#f3efe6; border:1px solid #d9d2c1; font-size:14.5px; color:#1f2937;
+  }
+  .login-field .form-control:focus{background:#fff; border-color:#c9a24b; box-shadow:0 0 0 3px rgba(201,162,75,.25);}
+  .login-field .eye{position:absolute; right:10px; top:50%; transform:translateY(-50%); border:none; background:none; color:#6b7280; font-size:18px; padding:6px;}
   .btn-sp-primary{
-    background:var(--sp-green-700); border:none; color:#fff; font-weight:600; border-radius:10px; padding:11px;
+    width:100%; height:52px; border-radius:12px; font-weight:700; font-size:16px; color:#fff; border:2px solid #d6b45f;
+    background:linear-gradient(180deg,#17703a,#0f4a28); box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 6px 16px rgba(10,60,30,.35);
   }
-  .btn-sp-primary:hover{background:var(--sp-green-800); color:#fff;}
+  .btn-sp-primary:hover{filter:brightness(1.08); color:#fff;}
+  .login-guru-link{font-size:13.5px; color:#374151; margin-top:16px;}
+  .login-guru-link a{color:#14532d; font-weight:700; text-decoration:none;}
   #loginError{display:none;}
-
-  /* ---------- SHELL ---------- */
+  .login-foot{text-wrap:balance; margin-top:14px; padding-top:12px; border-top:1px solid #e7e0cf; font-size:10.5px; color:#6b7280; line-height:1.5;}
+  @media (max-width:640px){.login-scene{background:linear-gradient(rgba(3,18,28,.15),rgba(3,18,28,.30)),url('login-bg-mobile.jpg') center/cover no-repeat,#06182b;}}
+  @media (max-width:480px){.login-card, .auth-card{padding:24px 20px 18px;} .login-card h3,.auth-card h3{font-size:34px;}}
   #appShell{display:flex; min-height:100vh;}
   .sidebar{
     width:250px; min-width:250px; background:linear-gradient(180deg,var(--sp-green-800),var(--sp-green-900));
@@ -206,34 +227,36 @@
 </style>
 </head>
 <body>
-<div id="loginView">
+<div id="loginView" class="login-scene">
   <div class="login-card">
-    <div class="brand-icon"><img src="https://lh3.googleusercontent.com/d/1dRLfW0FgeSjVHfqv-zMgtJg_H3ZQ_H-M" alt="SIPELLO" style="width:100%;height:100%;object-fit:cover;border-radius:16px;"></div>
+    <img class="emblem" src="logo-emblem.png" alt="Logo SIPELLO">
     <h3>SIPELLO</h3>
-    <p class="subtitle">Sistem Informasi Presensi Elektronik<br>MGMP Penjasorkes SMP Swasta Bondowoso</p>
+    <p class="subtitle-main">Sistem Informasi Presensi Elektronik</p>
+    <div class="subtitle-sub"><span>MGMP Penjasorkes SMP Swasta Bondowoso</span></div>
 
-    <div id="loginError" class="alert alert-danger py-2 small"></div>
+    <div id="loginError" class="alert alert-danger py-2 small text-start"></div>
 
-    <form id="loginForm" onsubmit="return false;">
-      <div class="mb-3 text-start">
-        <label class="form-label small fw-semibold">Username</label>
-        <input type="text" class="form-control" id="loginUsername" placeholder="admin" required>
+    <form id="loginForm" onsubmit="handleLogin(); return false;" autocomplete="on">
+      <div class="login-field">
+        <i class="bi bi-person lead-ico"></i>
+        <input type="text" class="form-control" id="loginUsername" placeholder="Masukkan username" autocapitalize="none" autocomplete="username" required>
       </div>
-      <div class="mb-3 text-start">
-        <label class="form-label small fw-semibold">Password</label>
-        <input type="password" class="form-control" id="loginPassword" placeholder="••••••••" required>
+      <div class="login-field">
+        <i class="bi bi-lock lead-ico"></i>
+        <input type="password" class="form-control" id="loginPassword" placeholder="Masukkan password" autocomplete="current-password" required>
+        <button type="button" class="eye" onclick="togglePw('loginPassword', this)" aria-label="Tampilkan password"><i class="bi bi-eye"></i></button>
       </div>
-      <button class="btn btn-sp-primary w-100" id="loginBtn" onclick="handleLogin()">Masuk</button>
+      <button type="submit" class="btn btn-sp-primary" id="loginBtn"><span id="loginBtnText">Masuk</span> <i class="bi bi-arrow-right ms-1"></i></button>
     </form>
-    <div class="mt-3" style="font-size:13px;">Anda guru? <a href="guru.html" style="color:#166534;font-weight:700;text-decoration:none;">Masuk / Daftar sebagai Guru</a></div>
-    <p class="mt-4 mb-0" style="font-size:11px;color:#9ca3af;">Setiap Keringat, Tercatat. &copy; 2026 SIPELLO. By Edoy D Hagane</p>
+    <div class="login-guru-link"><i class="bi bi-person"></i> Anda guru? <a href="guru.html">Masuk / Daftar sebagai Guru</a></div>
+    <div class="login-foot">Seluruh Hak Cipta, Teknologi, &amp; Desain &copy; 2026 SIPELLO. By Edoy D Hagane</div>
   </div>
 </div>
 
 <div id="appShell" class="d-none">
 <div class="sidebar" id="sidebarEl">
   <div class="sidebar-brand">
-    <div class="icon-wrap"><img src="https://lh3.googleusercontent.com/d/1dRLfW0FgeSjVHfqv-zMgtJg_H3ZQ_H-M" alt="SIPELLO" style="width:100%;height:100%;object-fit:cover;border-radius:10px;"></div>
+    <div class="icon-wrap"><img src="logo-emblem.png" alt="SIPELLO" style="width:100%;height:100%;object-fit:contain;"></div>
     <div>
       <div class="name">SIPELLO</div>
       <div class="desc">Sistem Informasi Presensi Elektronik<br>MGMP Penjasorkes SMP Swasta<br>Bondowoso</div>
@@ -375,7 +398,7 @@
       <div class="sp-card h-100">
         <h6 class="mb-2" style="font-size:13px;font-weight:700;letter-spacing:.3px;">LOKASI KEGIATAN</h6>
         <div style="border:1px solid var(--sp-border); border-radius:14px; overflow:hidden;">
-          <iframe id="dashMapFrame" width="100%" height="180" style="border:0;" loading="lazy"></iframe>
+          <div id="dashMap" style="width:100%;height:220px;background:#eef2f0;"></div>
           <div class="d-flex justify-content-between px-3 py-2" style="border-top:1px solid var(--sp-border); font-size:12px;">
             <div><span class="text-muted">Koordinat</span><br><span id="dashKoordinat">-</span></div>
             <div class="text-end"><span class="text-muted">Radius Absensi</span><br><span id="dashRadius">-</span></div>
@@ -575,6 +598,15 @@
         <div class="col-md-4 mb-2"><label class="form-label small">Longitude</label><input class="form-control" id="kgLng" placeholder="113.817456"></div>
         <div class="col-md-4 mb-2"><label class="form-label small">Radius (meter)</label><input type="number" class="form-control" id="kgRadius" value="100"></div>
         <div class="col-12 mb-2">
+          <label class="form-label small">Cari lokasi / pilih di peta</label>
+          <div class="input-group mb-2">
+            <input class="form-control" id="kgCari" placeholder="Ketik nama tempat, mis. SMP Negeri 1 Bondowoso" onkeydown="if(event.key==='Enter'){event.preventDefault();searchKegiatanPlace();}">
+            <button type="button" class="btn btn-sp-outline" onclick="searchKegiatanPlace()"><i class="bi bi-search"></i> Cari</button>
+          </div>
+          <div id="kgMap" style="width:100%;height:300px;border-radius:12px;border:1px solid var(--sp-border);background:#eef2f0;"></div>
+          <div class="small text-muted mt-1"><i class="bi bi-hand-index"></i> Klik peta atau geser pin untuk menentukan lokasi. Latitude, Longitude, dan lingkaran radius terisi otomatis.</div>
+        </div>
+        <div class="col-12 mb-2">
           <button type="button" class="btn btn-sm btn-sp-outline" onclick="useCurrentLocationForKegiatan()">
             <i class="bi bi-geo-alt-fill"></i> Gunakan Lokasi Saat Ini (GPS HP)
           </button>
@@ -584,7 +616,7 @@
           <select class="form-select" id="kgStatus"><option>Aktif</option><option>Selesai</option><option>Draft</option></select>
         </div>
       </div>
-      <small class="text-muted"><i class="bi bi-info-circle"></i> Gunakan Google Maps untuk mengambil koordinat Latitude/Longitude lokasi kegiatan.</small>
+      
     </div>
     <div class="modal-footer">
       <button class="btn btn-sp-outline" data-bs-dismiss="modal">Batal</button>
@@ -759,6 +791,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
@@ -808,10 +841,10 @@ function handleLogin() {
   errBox.style.display = 'none';
   if (!username || !password) return;
 
-  document.getElementById('loginBtn').innerText = 'Memproses...';
+  document.getElementById('loginBtnText').innerText = 'Memproses...';
   callAPI('login', [username, password])
     .then(function (res) {
-      document.getElementById('loginBtn').innerText = 'Masuk';
+      document.getElementById('loginBtnText').innerText = 'Masuk';
       if (!res.success) {
         errBox.innerText = res.message;
         errBox.style.display = 'block';
@@ -825,7 +858,7 @@ function handleLogin() {
       initApp();
     })
     .catch(function (err) {
-      document.getElementById('loginBtn').innerText = 'Masuk';
+      document.getElementById('loginBtnText').innerText = 'Masuk';
       errBox.innerText = 'Terjadi kesalahan: ' + err.message;
       errBox.style.display = 'block';
     });
@@ -899,11 +932,12 @@ function loadDashboard() {
       document.getElementById('dashLokasi').innerText = k.Lokasi || '-';
       document.getElementById('dashKoordinat').innerText = (k.Latitude || '-') + ', ' + (k.Longitude || '-');
       document.getElementById('dashRadius').innerText = (k.Radius || 100) + ' Meter';
+      updateDashMap(k);
       if (k.Latitude && k.Longitude) {
-        document.getElementById('dashMapFrame').src = 'https://maps.google.com/maps?q=' + k.Latitude + ',' + k.Longitude + '&z=16&output=embed';
-        document.getElementById('dashMapsLink').href = 'https://maps.google.com/maps?q=' + k.Latitude + ',' + k.Longitude;
+        document.getElementById('dashMapsLink').href = 'https://www.google.com/maps?q=' + k.Latitude + ',' + k.Longitude;
       }
     } else {
+      updateDashMap(null);
       document.getElementById('dashNamaKegiatan').innerText = 'Belum ada kegiatan aktif';
       document.getElementById('dashTema').innerText = 'Buat kegiatan baru di menu Kegiatan MGMP';
     }
@@ -1342,6 +1376,7 @@ function useCurrentLocationForKegiatan() {
   navigator.geolocation.getCurrentPosition(function (pos) {
     document.getElementById('kgLat').value = pos.coords.latitude.toFixed(6);
     document.getElementById('kgLng').value = pos.coords.longitude.toFixed(6);
+    syncKegiatanMap(true);
     status.innerText = 'Lokasi berhasil diambil (akurasi ' + Math.round(pos.coords.accuracy) + 'm)';
     status.style.color = 'var(--sp-green-600)';
   }, function (err) {
@@ -1647,6 +1682,113 @@ function resetPwGuru(id) {
   const pw = prompt('Masukkan password baru untuk guru ini (minimal 6 karakter):');
   if (!pw) return;
   callAPI('adminSetGuruPassword', [SESSION_TOKEN, id, pw]).then(function (r) { alert(r.message); }).catch(function (e) { alert(e.message); });
+}
+/* =========================================================
+ *  PETA (Leaflet + OpenStreetMap / Satelit)
+ * ========================================================= */
+const DEFAULT_MAP_CENTER = [-7.9136, 113.8216]; // Bondowoso
+let dashMapObj = null, dashMarker = null, dashCircle = null;
+let kgMapObj = null, kgMarker = null, kgCircle = null;
+
+function parseCoord(v) {
+  const n = parseFloat(String(v === undefined || v === null ? '' : v).replace(',', '.'));
+  return isFinite(n) ? n : null;
+}
+
+function createBaseMap(elId) {
+  if (typeof L === 'undefined') {
+    document.getElementById(elId).innerHTML = '<div class="p-3 text-center text-muted small">Peta tidak dapat dimuat. Periksa koneksi internet lalu muat ulang halaman.</div>';
+    return null;
+  }
+  const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' });
+  const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Esri' });
+  const map = L.map(elId, { layers: [osm], scrollWheelZoom: true }).setView(DEFAULT_MAP_CENTER, 11);
+  L.control.layers({ 'Peta': osm, 'Satelit': sat }).addTo(map);
+  return map;
+}
+
+function updateDashMap(k) {
+  if (!dashMapObj) dashMapObj = createBaseMap('dashMap');
+  if (!dashMapObj) return;
+  const lat = k ? parseCoord(k.Latitude) : null, lng = k ? parseCoord(k.Longitude) : null;
+  if (dashMarker) { dashMapObj.removeLayer(dashMarker); dashMarker = null; }
+  if (dashCircle) { dashMapObj.removeLayer(dashCircle); dashCircle = null; }
+  setTimeout(function () {
+    dashMapObj.invalidateSize();
+    if (lat === null || lng === null) { dashMapObj.setView(DEFAULT_MAP_CENTER, 11); return; }
+    const radius = parseFloat(k.Radius) || 100;
+    dashMarker = L.marker([lat, lng]).addTo(dashMapObj).bindPopup('<b>' + (k.Lokasi || k.Nama || 'Lokasi kegiatan') + '</b>');
+    dashCircle = L.circle([lat, lng], { radius: radius, color: '#166534', fillColor: '#22c55e', fillOpacity: 0.2, weight: 2 }).addTo(dashMapObj);
+    dashMapObj.fitBounds(dashCircle.getBounds(), { padding: [20, 20], maxZoom: 18 });
+  }, 250);
+}
+
+function setKegiatanLatLng(lat, lng) {
+  document.getElementById('kgLat').value = lat.toFixed(6);
+  document.getElementById('kgLng').value = lng.toFixed(6);
+  syncKegiatanMap(false);
+}
+
+function syncKegiatanMap(recenter) {
+  if (!kgMapObj) return;
+  const lat = parseCoord(document.getElementById('kgLat').value);
+  const lng = parseCoord(document.getElementById('kgLng').value);
+  const radius = parseFloat(document.getElementById('kgRadius').value) || 100;
+  if (lat === null || lng === null) {
+    if (kgMarker) { kgMapObj.removeLayer(kgMarker); kgMarker = null; }
+    if (kgCircle) { kgMapObj.removeLayer(kgCircle); kgCircle = null; }
+    if (recenter) kgMapObj.setView(DEFAULT_MAP_CENTER, 11);
+    return;
+  }
+  if (!kgMarker) {
+    kgMarker = L.marker([lat, lng], { draggable: true }).addTo(kgMapObj);
+    kgMarker.on('dragend', function () { const p = kgMarker.getLatLng(); setKegiatanLatLng(p.lat, p.lng); });
+  } else kgMarker.setLatLng([lat, lng]);
+  if (!kgCircle) kgCircle = L.circle([lat, lng], { radius: radius, color: '#166534', fillColor: '#22c55e', fillOpacity: 0.2, weight: 2 }).addTo(kgMapObj);
+  else { kgCircle.setLatLng([lat, lng]); kgCircle.setRadius(radius); }
+  if (recenter) kgMapObj.setView([lat, lng], 17);
+}
+
+function searchKegiatanPlace() {
+  const q = document.getElementById('kgCari').value.trim();
+  const status = document.getElementById('kgLocStatus');
+  if (!q) return;
+  status.innerText = 'Mencari lokasi...'; status.style.color = 'var(--sp-muted)';
+  fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=id&q=' + encodeURIComponent(q))
+    .then(function (r) { return r.json(); })
+    .then(function (res) {
+      if (!res.length) { status.innerText = 'Lokasi tidak ditemukan. Coba kata kunci lain atau klik langsung di peta.'; status.style.color = '#dc2626'; return; }
+      const lat = parseFloat(res[0].lat), lng = parseFloat(res[0].lon);
+      setKegiatanLatLng(lat, lng);
+      syncKegiatanMap(true);
+      if (!document.getElementById('kgAlamat').value) document.getElementById('kgAlamat').value = res[0].display_name || '';
+      if (!document.getElementById('kgLokasi').value) document.getElementById('kgLokasi').value = q;
+      status.innerText = 'Lokasi ditemukan. Geser pin bila perlu.'; status.style.color = 'var(--sp-green-600)';
+    })
+    .catch(function () { status.innerText = 'Pencarian gagal. Klik langsung di peta untuk memilih lokasi.'; status.style.color = '#dc2626'; });
+}
+
+(function initKegiatanMapEvents() {
+  const modalEl = document.getElementById('modalKegiatan');
+  if (!modalEl) return;
+  modalEl.addEventListener('shown.bs.modal', function () {
+    if (!kgMapObj) {
+      kgMapObj = createBaseMap('kgMap');
+      if (kgMapObj) kgMapObj.on('click', function (e) { setKegiatanLatLng(e.latlng.lat, e.latlng.lng); });
+    }
+    if (!kgMapObj) return;
+    kgMapObj.invalidateSize();
+    syncKegiatanMap(true);
+  });
+  ['kgLat', 'kgLng', 'kgRadius'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', function () { syncKegiatanMap(false); });
+  });
+})();
+function togglePw(id, btn) {
+  const el = document.getElementById(id);
+  const show = el.type === 'password';
+  el.type = show ? 'text' : 'password';
+  btn.innerHTML = '<i class="bi ' + (show ? 'bi-eye-slash' : 'bi-eye') + '"></i>';
 }
 </script>
 </body>
