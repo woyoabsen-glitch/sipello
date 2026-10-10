@@ -615,3 +615,11 @@ document.addEventListener('input', function (e) {
     if (e.target.value !== l) e.target.value = l;
   }
 });
+
+
+function togglePw(id, btn) {
+  const el = document.getElementById(id);
+  const show = el.type === 'password';
+  el.type = show ? 'text' : 'password';
+  btn.innerHTML = '<i class="bi ' + (show ? 'bi-eye-slash' : 'bi-eye') + '"></i>';
+}
