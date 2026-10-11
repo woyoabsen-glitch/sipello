@@ -248,7 +248,31 @@ function goToGuruPage(pageName) {
 /* =========================================================
  *  BERANDA
  * ========================================================= */
+function renderBerandaKegiatan(k) {
+  const el = document.getElementById('berandaKegBody'); if (!el) return;
+  const esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+  if (!k) { el.innerHTML = '<div class="d-flex align-items-center gap-2"><span class="badge-off">TIDAK ADA KEGIATAN</span></div><div class="mt-2">Belum ada kegiatan MGMP yang aktif saat ini.</div>'; return; }
+  let h = '<div class="d-flex justify-content-between align-items-start gap-2 mb-1"><div class="keg-name">' + esc(k.Nama) + '</div><span class="badge-live">● AKTIF</span></div>';
+  if (k.Tema) h += '<div class="keg-row"><i class="bi bi-bookmark-star-fill"></i><div>' + esc(k.Tema) + '</div></div>';
+  if (k.Tanggal) h += '<div class="keg-row"><i class="bi bi-calendar-event-fill"></i><div>' + esc(k.Tanggal) + '</div></div>';
+  const w = k.Waktu || (k.JamMulai ? k.JamMulai + (k.JamSelesai ? ' - ' + k.JamSelesai : '') : '');
+  if (w) h += '<div class="keg-row"><i class="bi bi-clock-fill"></i><div>' + esc(w) + '</div></div>';
+  if (k.Lokasi) h += '<div class="keg-row"><i class="bi bi-geo-alt-fill"></i><div>' + esc(k.Lokasi) + '</div></div>';
+  if (k.Latitude && k.Longitude) h += '<a class="btn-sp-outline d-flex align-items-center justify-content-center gap-2 text-decoration-none mt-2" target="_blank" href="https://www.google.com/maps?q=' + encodeURIComponent(k.Latitude + ',' + k.Longitude) + '"><i class="bi bi-map-fill"></i> Buka Peta Lokasi</a>';
+  el.innerHTML = h;
+}
+
+function renderSapaan() {
+  const hr = new Date().getHours();
+  const s = hr < 11 ? 'Selamat pagi' : hr < 15 ? 'Selamat siang' : hr < 18 ? 'Selamat sore' : 'Selamat malam';
+  const a = document.getElementById('berandaSalam'); if (a) a.innerText = s + ' 👋';
+  const n = document.getElementById('berandaNama'); if (n) n.innerText = (GURU_PROFILE && GURU_PROFILE.Nama) || document.getElementById('topbarNama').innerText;
+  const t = document.getElementById('berandaTanggal');
+  if (t) t.innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
 function loadBeranda() {
+  renderSapaan();
   callAPI('getGuruAttendanceHistory', [GURU_TOKEN, 10]).then(function (res) {
     document.getElementById('berandaTotalHadir').innerText = res.riwayat.length;
     const el = document.getElementById('berandaRiwayatList');
@@ -260,12 +284,13 @@ function loadBeranda() {
   });
 
   callAPI('getGuruProfile', [GURU_TOKEN]).then(function (res) {
-    if (res.success) { GURU_PROFILE = res.profile; renderQrGuru(res.profile); }
+    if (res.success) { GURU_PROFILE = res.profile; renderQrGuru(res.profile); renderSapaan(); }
   });
 
   callAPI('getDashboardData').then(function (data) {
     document.getElementById('berandaKegiatanAktif').innerText = data.kegiatan ? data.kegiatan.Nama : 'Tidak ada';
     activeKegiatanCache = data.kegiatan;
+    renderBerandaKegiatan(data.kegiatan);
   });
 }
 
