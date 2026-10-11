@@ -12,7 +12,7 @@ let GURU_TOKEN = localStorage.getItem('sipello_guru_token') || null;
 let GURU_PROFILE = null;
 let modelsLoaded = false;
 let regStream = null, updStream = null, absenStream = null;
-let regDescriptor = null, regFotoBase64 = null, regProfilePhoto = null;
+let regDescriptor = null, regFotoBase64 = null, regProfilePhoto = null, regThumb = '';
 let absenWatchId = null;
 let currentLat = null, currentLng = null;
 let activeKegiatanCache = null;
@@ -139,7 +139,8 @@ function submitRegister() {
     KepsekHP: hpToFull(document.getElementById('regKepsekHp').value),
     FaceDescriptor: regDescriptor,
     FotoBase64: (regProfilePhoto || regFotoBase64) ? (regProfilePhoto || regFotoBase64).split(',')[1] : '',
-    FotoMime: 'image/jpeg'
+    FotoMime: 'image/jpeg',
+    FotoThumb: regProfilePhoto ? regThumb : ''
   };
 
   const btn = document.getElementById('btnSubmitRegister');
@@ -514,6 +515,20 @@ function handleGuruLogout() {
 /* =========================================================
  *  FOTO PROFIL (upload + resize) & KARTU QR
  * ========================================================= */
+function makeThumb(dataUrl, px) {
+  return new Promise(function (resolve) {
+    const img = new Image();
+    img.onerror = function () { resolve(''); };
+    img.onload = function () {
+      const s = Math.min(1, px / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      resolve(c.toDataURL('image/jpeg', 0.72));
+    };
+    img.src = dataUrl;
+  });
+}
+
 function resizeImageToDataUrl(file, maxPx) {
   return new Promise(function (resolve, reject) {
     const reader = new FileReader();
@@ -601,12 +616,15 @@ function cropConfirm() {
 
 function afterCropRegister(dataUrl) {
   regProfilePhoto = dataUrl;
+  makeThumb(dataUrl, 240).then(function (t) { regThumb = t; });
   document.getElementById('regFotoPreview').src = dataUrl;
 }
 
 function afterCropProfil(dataUrl) {
   document.getElementById('profilFoto').src = dataUrl;
-  callAPI('updateGuruProfile', [GURU_TOKEN, { FotoBase64: dataUrl.split(',')[1], FotoMime: 'image/jpeg' }]).then(function (res) {
+  makeThumb(dataUrl, 240).then(function (thumb) {
+    return callAPI('updateGuruProfile', [GURU_TOKEN, { FotoBase64: dataUrl.split(',')[1], FotoMime: 'image/jpeg', FotoThumb: thumb }]);
+  }).then(function (res) {
     if (!res.success) { alert(res.message || 'Gagal menyimpan foto.'); loadProfil(); return; }
     alert(res.message || 'Foto diperbarui.');
     if (res.fotoUrl) document.getElementById('topbarFoto').src = res.fotoUrl;
