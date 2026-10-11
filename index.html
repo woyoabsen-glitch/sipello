@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SIPELLO - Sistem Informasi Presensi Elektronik</title>
 <link rel="manifest" href="manifest.json">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Great+Vibes&display=swap" rel="stylesheet">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 
@@ -224,6 +224,148 @@
     background:linear-gradient(135deg,var(--sp-green-800),var(--sp-green-600)); color:#fff; border-radius:16px;
     padding:20px 24px; display:flex; align-items:center; gap:16px;
   }
+
+  /* =====================================================
+     TEMA DASHBOARD EMAS-HIJAU (sidebar, topbar, kartu)
+     ===================================================== */
+  :root{--gold:#c9a24b; --gold-light:#f3d27a; --ink-green:#06231a;}
+  body{background:#f3f5f1;}
+  .sidebar{
+    width:272px; min-width:272px; padding:18px 14px 14px; position:sticky; top:0; height:100vh; overflow-y:auto;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Cpath d='M22 4 L40 22 L22 40 L4 22Z' fill='none' stroke='%23c9a24b' stroke-width='1' stroke-opacity='.12'/%3E%3Cpath d='M22 14 L30 22 L22 30 L14 22Z' fill='%23c9a24b' fill-opacity='.05'/%3E%3C/svg%3E"),
+      linear-gradient(180deg,#0b3a2a 0%,#072a1e 55%,#041a12 100%);
+    border-right:1px solid rgba(201,162,75,.35);
+  }
+  .sidebar-brand{gap:10px; padding:2px 4px 16px; align-items:center;}
+  .sidebar-brand .icon-wrap{width:62px; height:62px; min-width:62px; border-radius:0; background:none;}
+  .sidebar-brand .name{
+    font-family:'Cinzel',serif !important; font-weight:800; font-size:25px; letter-spacing:1px; line-height:1;
+    background:linear-gradient(180deg,#f7dd8c,#c9a24b 70%,#9a741f); -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
+  }
+  .sidebar-brand .desc{font-size:9.5px; opacity:.9; line-height:1.35; margin-top:4px; color:#e8efe9;}
+  .nav-menu{margin:6px 0 10px;}
+  .nav-menu li{margin-bottom:3px;}
+  .nav-menu a{padding:11px 14px; border-radius:10px; font-size:14px; color:#e7f1ea; position:relative; border:1px solid transparent;}
+  .nav-menu a i{font-size:18px; width:22px; color:#f1e7c8;}
+  .nav-menu a:hover{background:rgba(255,255,255,.07);}
+  .nav-menu a.active{
+    background:linear-gradient(90deg,#1a7a47,#0f5a33); border-color:rgba(201,162,75,.45); font-weight:600;
+    box-shadow:inset 3px 0 0 var(--gold), 0 4px 14px rgba(0,0,0,.25);
+  }
+  .nav-menu a.active::after{content:"\F285"; font-family:"bootstrap-icons"; margin-left:auto; font-size:13px;}
+  .nav-menu li:last-child{margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.12);}
+  .sidebar-footer-card{
+    display:flex; align-items:center; gap:10px; text-align:left; padding:12px 12px;
+    background:rgba(0,0,0,.28); border:1px solid rgba(201,162,75,.5); border-radius:14px;
+  }
+  .sidebar-footer-card img{width:44px; height:auto;}
+  .sidebar-footer-card .name{font-family:'Cinzel',serif !important; font-size:16px; font-weight:800; color:var(--gold-light);}
+  .sidebar-footer-card .tag{font-family:'Great Vibes',cursive !important; font-size:17px; color:var(--gold-light); opacity:1; margin-top:0; line-height:1.1;}
+  .sidebar-copy{font-size:10px; opacity:.6;}
+
+  .topbar{
+    min-height:96px; padding:0 0 0 0; align-items:stretch; border-bottom:3px solid transparent;
+    border-image:linear-gradient(90deg,#8a6a1e,#f3d27a,#8a6a1e) 1;
+    background:linear-gradient(90deg,rgba(2,18,14,.05),rgba(2,18,14,.55)),url('login-bg.jpg') 70% 12%/cover no-repeat,#0b3a2a;
+  }
+  .topbar .brand-tab{
+    background:#fff; display:flex; align-items:center; gap:14px; padding:12px 74px 12px 24px; margin-top:26px;
+    clip-path:polygon(0 0,calc(100% - 64px) 0,100% 100%,0 100%);
+  }
+  .topbar .brand-tab .app-title{font-family:'Cinzel',serif !important; font-size:27px; letter-spacing:.5px; color:#14532d; display:block;}
+  .topbar .brand-tab .app-sub{font-size:11.5px; color:#374151; border-left:2px solid #d9d2c1; padding-left:14px; line-height:1.35; margin:0; max-width:300px;}
+  .topbar .top-tagline{
+    flex:1; display:flex; align-items:center; justify-content:center; padding:0 16px;
+    font-family:'Great Vibes',cursive !important; font-size:32px; color:var(--gold-light); text-shadow:0 2px 8px rgba(0,0,0,.6); white-space:nowrap;
+  }
+  .topbar .user-box{padding:0 24px 0 8px; color:#fff;}
+  .topbar .user-box .avatar{
+    width:50px; height:50px; background:linear-gradient(180deg,#1fa65b,#0f6a3a); color:#fff; font-size:26px; border:2px solid var(--gold-light); box-shadow:0 0 0 3px rgba(0,0,0,.25);
+  }
+  .topbar .user-box .uname{font-size:13.5px; font-weight:700; color:#fff;}
+  .topbar .user-box .urole{font-size:11px; color:#e6efe8;}
+  .topbar .user-box .bi-chevron-down{color:#fff !important;}
+  @media (max-width:991px){.topbar .top-tagline{display:none;}}
+  @media (max-width:600px){.topbar .brand-tab{padding-right:48px; margin-top:20px;} .topbar .brand-tab .app-sub{display:none;} .topbar .brand-tab .app-title{font-size:22px;}}
+
+  .content-area{padding:20px 26px 40px;}
+  .sp-card{border:1px solid #e7e1cf; border-radius:16px; box-shadow:0 2px 10px rgba(20,60,40,.06);}
+
+  /* --- kartu statistik --- */
+  .stat-card{
+    position:relative; display:block; padding:14px 16px 14px; border-radius:16px; cursor:pointer; height:100%;
+    box-shadow:0 2px 10px rgba(20,60,40,.06); transition:.15s;
+  }
+  .stat-card:hover{transform:translateY(-2px); box-shadow:0 8px 20px rgba(20,60,40,.12);}
+  .stat-card .sc-top{display:flex; align-items:center; gap:12px;}
+  .stat-card .icon{width:54px; height:54px; border-radius:50%; color:#fff !important; font-size:24px; box-shadow:0 4px 10px rgba(0,0,0,.18), inset 0 0 0 2px rgba(255,255,255,.35);}
+  .stat-card .sc-title{font-size:13px; font-weight:700; color:#1f2937; display:flex; align-items:center; justify-content:space-between; gap:6px; flex:1;}
+  .stat-card .sc-title i{font-size:12px; color:#6b7280;}
+  .stat-card .num{font-size:32px; font-weight:800; margin-top:6px; line-height:1; color:#111827;}
+  .stat-card .sc-desc{font-size:11.5px; color:#6b7280; margin-top:6px;}
+  .stat-blue{background:linear-gradient(180deg,#eef5ff,#f8fbff); border-color:#cfe0f7;} .stat-blue .icon{background:linear-gradient(180deg,#4aa3ff,#1d6fe0) !important;}
+  .stat-green{background:linear-gradient(180deg,#eefaf1,#f8fdf9); border-color:#cdebd6;} .stat-green .icon{background:linear-gradient(180deg,#34c46d,#16883f) !important;}
+  .stat-orange{background:linear-gradient(180deg,#fff7e6,#fffcf4); border-color:#f6e1ad;} .stat-orange .icon{background:linear-gradient(180deg,#ffc13d,#e8890c) !important;}
+  .stat-purple{background:linear-gradient(180deg,#f4efff,#fbf9ff); border-color:#ddd0f7;} .stat-purple .icon{background:linear-gradient(180deg,#9b6bff,#6a3fd0) !important;}
+
+  /* --- kegiatan aktif --- */
+  .dash-kegiatan-card{padding:20px 22px;}
+  .badge-kegiatan-aktif{background:linear-gradient(180deg,#17803f,#0f5a33); border-radius:0 0 12px 0; font-size:11px; padding:6px 16px;}
+  .dash-kegiatan-card .live-wrap{position:absolute; top:14px; right:16px;}
+  .dash-kegiatan-card .kg-head{text-align:center; margin-top:14px;}
+  .dash-kegiatan-card .kg-icon{width:52px; height:52px; border-radius:50%; background:#e3f6e9; color:#15803d; display:inline-flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:8px;}
+  .dash-kegiatan-card .kg-head h5{font-size:21px; font-weight:800; margin:0 0 4px;}
+  #dashTema{color:#1d6fa5; font-size:14px; margin:0;}
+  .kg-info{display:flex; border:1px solid #e7e1cf; background:#fbfaf6; border-radius:12px; margin-top:16px; overflow:hidden;}
+  .kg-info > div{flex:1; display:flex; gap:10px; align-items:center; padding:12px 14px; min-width:0;}
+  .kg-info > div + div{border-left:1px solid #e7e1cf;}
+  .kg-info i{font-size:20px; color:#374151;}
+  .kg-info .lb{font-size:10.5px; color:#6b7280; letter-spacing:.4px;}
+  .kg-info .vl{font-size:13px; font-weight:600; word-break:break-word;}
+  .dash-presensi-title{display:flex; align-items:center; gap:8px; font-weight:700; font-size:14.5px; margin:18px 0 8px;}
+  .dash-progress-box{background:transparent; padding:0;}
+  .dash-progress-box .progress{background:#e8ebe7;}
+  .dash-kegiatan-card .btn-sp-green{background:linear-gradient(180deg,#0f6a3a,#0a4d2a); border:1px solid #c9a24b; border-radius:10px; padding:11px 18px;}
+  .dash-kegiatan-card .btn-sp-outline{border:1px solid #d6c9a3; background:#fff; border-radius:10px; color:#1f2937;}
+
+  /* --- lokasi --- */
+  .loc-title{display:flex; align-items:center; gap:8px; font-weight:800; font-size:14.5px; letter-spacing:.3px; margin-bottom:12px;}
+  .loc-title i{color:#14532d; font-size:18px;}
+  .loc-meta{display:flex; border:1px solid #e7e1cf; border-radius:12px; margin-top:10px; background:#fbfaf6;}
+  .loc-meta > div{flex:1; display:flex; gap:10px; align-items:center; padding:10px 14px; font-size:12.5px;}
+  .loc-meta > div + div{border-left:1px solid #e7e1cf;}
+  .loc-meta i{font-size:18px; color:#374151;}
+  .loc-meta .lb{font-size:11px; color:#6b7280;}
+
+  /* --- bawah --- */
+  .card-title-ico{display:flex; align-items:center; gap:8px; font-weight:800; font-size:14.5px;}
+  .card-title-ico i{color:#14532d; font-size:18px;}
+  .pill-select{font-size:11px; border:1px solid #d9d2c1; border-radius:8px; padding:3px 10px; color:#4b5563; background:#fff;}
+  .upcoming-item{align-items:center; padding:10px 0;}
+  .upcoming-date-box{width:48px; height:48px; border-radius:10px; background:#f2f4f1; border:1px solid #e3e6e1; color:#1f2937;}
+  .upcoming-date-box .d{font-size:19px;}
+  .upcoming-badge{background:#fdf1d3; color:#a16207;}
+  .quick-access-item{background:#fff; border:1px solid #e3dcc6; border-radius:12px; padding:14px 6px; gap:8px; box-shadow:0 1px 4px rgba(20,60,40,.05);}
+  .quick-access-item i{font-size:24px; color:#111827;}
+  .quick-access-item span{font-size:11px; font-weight:600;}
+  .quick-access-item:hover{background:#f3faf5;}
+  .qa-banner{
+    display:flex; align-items:center; gap:12px; margin-top:12px; padding:12px 16px; border-radius:12px; color:#fff; position:relative; overflow:hidden;
+    background:linear-gradient(120deg,#062a1d,#0b4a30); border:1px solid rgba(201,162,75,.6);
+  }
+  .qa-banner img{width:46px; height:auto;}
+  .qa-banner .t1{font-family:'Cinzel',serif !important; font-weight:800; font-size:17px; color:var(--gold-light); line-height:1.1;}
+  .qa-banner .t2{font-size:10.5px; line-height:1.3; opacity:.92;}
+  .dash-welcome, .dash-footer-banner{display:none !important;}
+  @media(max-width:900px){
+    .sidebar{position:fixed; left:-300px; z-index:1000; transition:left .2s; top:0;}
+    .sidebar.open{left:0; box-shadow:0 0 40px rgba(0,0,0,.5);}
+    .main-wrapper{width:100%;}
+    .content-area{padding:16px 14px 40px;}
+    .stat-card .num{font-size:28px;}
+  }
+  .stat-card .sc-title{font-size:12.5px;}
 </style>
 </head>
 <body>
@@ -276,31 +418,26 @@
   </ul>
 
   <div class="sidebar-footer-card">
-    <div class="name">SIPELLO</div>
-    <div class="tag">Setiap Keringat, Tercatat.</div>
+    <img src="logo-emblem.png" alt="">
+    <div><div class="name">SIPELLO</div><div class="tag">Jejak Hadir, Bukti Mengabdi.</div></div>
   </div>
   <div class="sidebar-copy">&copy; 2026 SIPELLO. By Edoy D Hagane</div>
 </div>
   <div class="main-wrapper">
 <div class="topbar">
-  <div class="d-flex align-items-center gap-3">
-    <button class="btn btn-sm btn-light d-md-none" onclick="document.getElementById('sidebarEl').classList.toggle('open')">
-      <i class="bi bi-list"></i>
-    </button>
-    <div>
-      <p class="app-title mb-0" style="display:flex;align-items:center;gap:8px;">
-        <i class="bi bi-person-running" style="color:var(--sp-green-600);"></i> SIPELLO
-      </p>
-      <p class="app-sub">Sistem Informasi Presensi Elektronik &middot; MGMP Penjasorkes SMP Swasta Bondowoso</p>
-    </div>
+  <div class="brand-tab">
+    <button class="btn btn-sm btn-light d-md-none" onclick="document.getElementById('sidebarEl').classList.toggle('open')"><i class="bi bi-list"></i></button>
+    <span class="app-title">SIPELLO</span>
+    <p class="app-sub">Sistem Informasi Presensi Elektronik &ndash;<br>MGMP Penjasorkes SMP Swasta Bondowoso</p>
   </div>
+  <div class="top-tagline">Jejak Hadir, Bukti Mengabdi.</div>
   <div class="user-box">
-    <div class="text-end d-none d-sm-block">
-      <div style="font-size:13.5px;font-weight:600;" id="topbarUserName">Pengurus MGMP</div>
-      <div style="font-size:11.5px;color:var(--sp-muted);"><span class="status-dot"></span>Online</div>
-    </div>
     <div class="avatar"><i class="bi bi-person-fill"></i></div>
-    <i class="bi bi-chevron-down" style="font-size:11px;color:var(--sp-muted);"></i>
+    <div class="d-none d-sm-block">
+      <div class="uname" id="topbarUserName">Pengurus MGMP</div>
+      <div class="urole" id="topbarUserRole">Administrator</div>
+    </div>
+    <i class="bi bi-chevron-down" style="font-size:11px;"></i>
   </div>
 </div>
     <div class="content-area" id="contentArea">
@@ -328,24 +465,39 @@
   <!-- 5 KARTU STATISTIK -->
   <div class="row g-3 mb-3">
     <div class="col-6 col-lg">
-      <div class="stat-card stat-blue"><div class="icon"><i class="bi bi-people-fill"></i></div>
-        <div><div class="num" id="statTotalGuru">0</div><div class="lbl">Guru Terdaftar</div></div></div>
+      <div class="stat-card stat-blue" onclick="goToPage('DataGuru')">
+        <div class="sc-top"><div class="icon"><i class="bi bi-people-fill"></i></div>
+          <div class="sc-title"><span>Guru Terdaftar</span><i class="bi bi-chevron-right"></i></div></div>
+        <div class="num" id="statTotalGuru">0</div>
+        <div class="sc-desc">Total guru dalam sistem</div></div>
     </div>
     <div class="col-6 col-lg">
-      <div class="stat-card stat-green"><div class="icon"><i class="bi bi-person-check-fill"></i></div>
-        <div><div class="num" id="statHadir">0</div><div class="lbl">Guru Hadir</div></div></div>
+      <div class="stat-card stat-green" onclick="goToPage('Rekap')">
+        <div class="sc-top"><div class="icon"><i class="bi bi-person-check-fill"></i></div>
+          <div class="sc-title"><span>Guru Hadir</span><i class="bi bi-chevron-right"></i></div></div>
+        <div class="num" id="statHadir">0</div>
+        <div class="sc-desc">Guru yang sudah hadir</div></div>
     </div>
     <div class="col-6 col-lg">
-      <div class="stat-card stat-orange"><div class="icon"><i class="bi bi-clock-fill"></i></div>
-        <div><div class="num" id="statBelumHadir">0</div><div class="lbl">Guru Belum Hadir</div></div></div>
+      <div class="stat-card stat-orange" onclick="goToPage('Rekap')">
+        <div class="sc-top"><div class="icon"><i class="bi bi-clock-fill"></i></div>
+          <div class="sc-title"><span>Guru Belum Hadir</span><i class="bi bi-chevron-right"></i></div></div>
+        <div class="num" id="statBelumHadir">0</div>
+        <div class="sc-desc">Guru yang belum hadir</div></div>
     </div>
     <div class="col-6 col-lg">
-      <div class="stat-card stat-purple"><div class="icon"><i class="bi bi-pie-chart-fill"></i></div>
-        <div><div class="num" id="statPersentase">0%</div><div class="lbl">Kehadiran Hari Ini</div></div></div>
+      <div class="stat-card stat-purple" onclick="goToPage('Rekap')">
+        <div class="sc-top"><div class="icon"><i class="bi bi-pie-chart-fill"></i></div>
+          <div class="sc-title"><span>Kehadiran Hari Ini</span><i class="bi bi-chevron-right"></i></div></div>
+        <div class="num" id="statPersentase">0%</div>
+        <div class="sc-desc">Dari total guru</div></div>
     </div>
     <div class="col-6 col-lg">
-      <div class="stat-card stat-blue"><div class="icon"><i class="bi bi-calendar-event-fill"></i></div>
-        <div><div class="num" id="statKegiatanTahunIni">0</div><div class="lbl">Kegiatan Tahun Ini</div></div></div>
+      <div class="stat-card stat-blue" onclick="goToPage('KegiatanMGMP')">
+        <div class="sc-top"><div class="icon"><i class="bi bi-calendar-event-fill"></i></div>
+          <div class="sc-title"><span>Kegiatan Tahun Ini</span><i class="bi bi-chevron-right"></i></div></div>
+        <div class="num" id="statKegiatanTahunIni">0</div>
+        <div class="sc-desc">Total kegiatan</div></div>
     </div>
   </div>
 
@@ -354,32 +506,25 @@
     <div class="col-lg-7">
       <div class="sp-card h-100 position-relative dash-kegiatan-card">
         <span class="badge-kegiatan-aktif">KEGIATAN AKTIF</span>
-        <div class="d-flex justify-content-between align-items-start mt-4 mb-2">
-          <h5 class="mb-0" id="dashNamaKegiatan">-</h5>
-          <span class="badge-live"><i class="bi bi-broadcast"></i> Sedang Berlangsung</span>
-        </div>
-        <p class="text-muted mb-1" style="font-size:13.5px;" id="dashTema">-</p>
-
-        <div class="row mt-3" style="font-size:13px;">
-          <div class="col-4">
-            <div class="text-muted" style="font-size:11px;">TANGGAL</div>
-            <div class="fw-semibold" id="dashTanggal">-</div>
-          </div>
-          <div class="col-4">
-            <div class="text-muted" style="font-size:11px;">WAKTU</div>
-            <div class="fw-semibold" id="dashWaktu">-</div>
-          </div>
-          <div class="col-4">
-            <div class="text-muted" style="font-size:11px;">LOKASI</div>
-            <div class="fw-semibold" id="dashLokasi">-</div>
-          </div>
+        <div class="live-wrap"><span class="badge-live"><i class="bi bi-broadcast"></i> Sedang Berlangsung</span></div>
+        <div class="kg-head">
+          <div class="kg-icon"><i class="bi bi-calendar-check"></i></div>
+          <h5 id="dashNamaKegiatan">-</h5>
+          <p id="dashTema">-</p>
         </div>
 
-        <div class="dash-progress-box mt-3">
+        <div class="kg-info">
+          <div><i class="bi bi-calendar3"></i><div><div class="lb">TANGGAL</div><div class="vl" id="dashTanggal">-</div></div></div>
+          <div><i class="bi bi-clock"></i><div><div class="lb">WAKTU</div><div class="vl" id="dashWaktu">-</div></div></div>
+          <div><i class="bi bi-geo-alt"></i><div><div class="lb">LOKASI</div><div class="vl" id="dashLokasi">-</div></div></div>
+        </div>
+
+        <div class="dash-presensi-title"><i class="bi bi-people-fill text-success"></i> Ringkasan Presensi</div>
+        <div class="dash-progress-box">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <div><span class="fw-bold text-success" id="dashHadirNum">0</span> <span class="text-muted" style="font-size:12px;">Hadir</span></div>
+            <div><span class="fw-bold text-success" style="font-size:20px;" id="dashHadirNum">0</span> <span class="text-muted" style="font-size:12px;">Hadir</span></div>
             <div id="dashAvatarStack" class="d-flex"></div>
-            <div><span class="fw-bold text-warning" id="dashBelumHadirNum">0</span> <span class="text-muted" style="font-size:12px;">Belum Hadir</span></div>
+            <div class="text-end"><span class="fw-bold" style="font-size:20px;color:#d97706;" id="dashBelumHadirNum">0</span> <span class="text-muted" style="font-size:12px;">Belum Hadir</span></div>
           </div>
           <div class="progress" style="height:8px;border-radius:10px;">
             <div class="progress-bar bg-success" id="dashProgressBar" style="width:0%;border-radius:10px;"></div>
@@ -387,7 +532,7 @@
         </div>
 
         <div class="d-flex gap-2 mt-3 flex-wrap">
-          <button class="btn btn-sp-green flex-grow-1" onclick="goToPage('ScanQR')"><i class="bi bi-qr-code-scan"></i> Mulai Scan QR</button>
+          <button class="btn btn-sp-green flex-grow-1" onclick="goToPage('ScanQR')"><i class="bi bi-qr-code-scan"></i> Mulai Scan QR <i class="bi bi-arrow-right ms-1"></i></button>
           <button class="btn btn-sp-outline" onclick="goToPage('KegiatanMGMP')"><i class="bi bi-info-circle"></i> Detail Kegiatan</button>
           <button class="btn btn-sp-outline" onclick="goToPage('DataGuru')"><i class="bi bi-people"></i> Lihat Peserta</button>
         </div>
@@ -396,16 +541,16 @@
 
     <div class="col-lg-5">
       <div class="sp-card h-100">
-        <h6 class="mb-2" style="font-size:13px;font-weight:700;letter-spacing:.3px;">LOKASI KEGIATAN</h6>
-        <div style="border:1px solid var(--sp-border); border-radius:14px; overflow:hidden;">
-          <div id="dashMap" style="width:100%;height:220px;background:#eef2f0;"></div>
-          <div class="d-flex justify-content-between px-3 py-2" style="border-top:1px solid var(--sp-border); font-size:12px;">
-            <div><span class="text-muted">Koordinat</span><br><span id="dashKoordinat">-</span></div>
-            <div class="text-end"><span class="text-muted">Radius Absensi</span><br><span id="dashRadius">-</span></div>
-          </div>
+        <div class="loc-title"><i class="bi bi-geo-alt-fill"></i> LOKASI KEGIATAN</div>
+        <div style="border:1px solid #e7e1cf; border-radius:14px; overflow:hidden;">
+          <div id="dashMap" style="width:100%;height:230px;background:#eef2f0;"></div>
+        </div>
+        <div class="loc-meta">
+          <div><i class="bi bi-geo-alt"></i><div><div class="lb">Koordinat</div><div id="dashKoordinat">-</div></div></div>
+          <div><i class="bi bi-bullseye"></i><div><div class="lb">Radius Absensi</div><div id="dashRadius">-</div></div></div>
         </div>
         <a id="dashMapsLink" href="#" target="_blank" class="btn btn-sp-outline w-100 mt-2" style="font-size:12.5px;">
-          <i class="bi bi-box-arrow-up-right"></i> Lihat di Google Maps
+          <i class="bi bi-geo-alt-fill" style="color:#ea4335;"></i> Lihat di Google Maps <i class="bi bi-arrow-right ms-1"></i>
         </a>
       </div>
     </div>
@@ -415,7 +560,7 @@
   <div class="row g-3 mb-3">
     <div class="col-lg-4">
       <div class="sp-card h-100">
-        <h6 class="mb-3" style="font-size:13px;font-weight:700;letter-spacing:.3px;">STATISTIK KEHADIRAN 6 BULAN TERAKHIR</h6>
+        <div class="d-flex justify-content-between align-items-center mb-3"><div class="card-title-ico"><i class="bi bi-bar-chart-fill"></i> Statistik Kehadiran 6 Bulan Terakhir</div><span class="pill-select">6 Bulan Terakhir</span></div>
         <svg id="chartKehadiran" viewBox="0 0 300 150" style="width:100%;height:150px;"></svg>
       </div>
     </div>
@@ -423,7 +568,7 @@
     <div class="col-lg-4">
       <div class="sp-card h-100">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="mb-0" style="font-size:13px;font-weight:700;letter-spacing:.3px;">KEGIATAN TERDEKAT</h6>
+          <div class="card-title-ico"><i class="bi bi-calendar-event-fill"></i> Kegiatan Terdekat</div>
           <a href="#" onclick="goToPage('KegiatanMGMP'); return false;" style="font-size:12px;">Lihat Semua</a>
         </div>
         <div id="upcomingKegiatanList"><div class="text-muted" style="font-size:12.5px;">Memuat...</div></div>
@@ -432,15 +577,16 @@
 
     <div class="col-lg-4">
       <div class="sp-card h-100">
-        <h6 class="mb-3" style="font-size:13px;font-weight:700;letter-spacing:.3px;">AKSES CEPAT</h6>
+        <div class="card-title-ico mb-3"><i class="bi bi-lightning-charge-fill" style="color:#d97706;"></i> Akses Cepat</div>
         <div class="row g-2">
-          <div class="col-6"><a href="#" class="quick-access-item" onclick="goToPage('ScanQR'); return false;"><i class="bi bi-qr-code-scan"></i><span>Scan QR</span></a></div>
-          <div class="col-6"><a href="#" class="quick-access-item" onclick="goToPage('DataGuru'); return false;"><i class="bi bi-people-fill"></i><span>Data Guru</span></a></div>
-          <div class="col-6"><a href="#" class="quick-access-item" onclick="goToPage('DataSekolah'); return false;"><i class="bi bi-building"></i><span>Data Sekolah</span></a></div>
-          <div class="col-6"><a href="#" class="quick-access-item" onclick="goToPage('KegiatanMGMP'); return false;"><i class="bi bi-calendar-event-fill"></i><span>Kegiatan</span></a></div>
-          <div class="col-6"><a href="#" class="quick-access-item" onclick="goToPage('Rekap'); return false;"><i class="bi bi-bar-chart-fill"></i><span>Rekap</span></a></div>
-          <div class="col-6"><a href="#" class="quick-access-item" onclick="goToPage('Pengaturan'); return false;"><i class="bi bi-gear-fill"></i><span>Pengaturan</span></a></div>
+          <div class="col-4"><a href="#" class="quick-access-item" onclick="goToPage('DataGuru'); return false;"><i class="bi bi-person-plus-fill"></i><span>Tambah Guru</span></a></div>
+          <div class="col-4"><a href="#" class="quick-access-item" onclick="goToPage('DataSekolah'); return false;"><i class="bi bi-building-add"></i><span>Tambah Sekolah</span></a></div>
+          <div class="col-4"><a href="#" class="quick-access-item" onclick="goToPage('KegiatanMGMP'); return false;"><i class="bi bi-calendar-plus-fill"></i><span>Buat Kegiatan</span></a></div>
+          <div class="col-4"><a href="#" class="quick-access-item" onclick="goToPage('Rekap'); return false;"><i class="bi bi-clipboard-check-fill"></i><span>Rekap Kehadiran</span></a></div>
+          <div class="col-4"><a href="#" class="quick-access-item" onclick="goToPage('WhatsApp'); return false;"><i class="bi bi-megaphone-fill"></i><span>Kirim Pengumuman</span></a></div>
+          <div class="col-4"><a href="#" class="quick-access-item" onclick="goToPage('Rekap'); return false;"><i class="bi bi-file-earmark-arrow-down-fill"></i><span>Export Excel</span></a></div>
         </div>
+        <div class="qa-banner"><img src="logo-emblem.png" alt=""><div><div class="t1">SIPELLO</div><div class="t2">Sistem Informasi Presensi Elektronik<br>MGMP Penjasorkes SMP Swasta Bondowoso</div></div></div>
       </div>
     </div>
   </div>
@@ -853,6 +999,7 @@ function handleLogin() {
       SESSION_TOKEN = res.token;
       CURRENT_USER = res.user;
       document.getElementById('topbarUserName').innerText = res.user.nama;
+      document.getElementById('topbarUserRole').innerText = (String(res.user.role || '').toLowerCase().indexOf('admin') !== -1) ? 'Administrator' : (res.user.role || 'Pengurus');
       document.getElementById('loginView').classList.add('d-none');
       document.getElementById('appShell').classList.remove('d-none');
       initApp();
