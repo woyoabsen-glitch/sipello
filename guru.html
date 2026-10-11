@@ -1,75 +1,442 @@
-Tampilan antarmuka berbasis web/seluler ini merupakan *dashboard* akun pengguna (guru) pada sistem presensi presensi elektronik.
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SIPELLO Guru - Absensi Wajah</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Cinzel:wght@700;800&family=Great+Vibes&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+<style>
+  :root{
+    --sp-green-900:#0f3d24; --sp-green-800:#14532d; --sp-green-700:#166534; --sp-green-600:#16a34a;
+    --sp-green-50:#f0fdf4; --sp-text:#1f2937; --sp-muted:#6b7280; --sp-border:#e5e7eb; --sp-bg:#f7f9f8;
+    --sp-red:#dc2626; --sp-red-bg:#fee2e2;
+  }
+  *{font-family:'Poppins',sans-serif; box-sizing:border-box;}
+  html,body{height:100%;}
+  body{background:var(--sp-bg); color:var(--sp-text); margin:0; padding-bottom:env(safe-area-inset-bottom,0px);}
+  .d-none{display:none !important;}
 
-**1. Header Atas (Bilah Hijau Tua)**
+  /* ---------- AUTH (tema emas-hijau SIPELLO) ---------- */
+  .login-scene{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; position:relative; overflow:hidden;
+    background:linear-gradient(rgba(3,18,28,.18),rgba(3,18,28,.30)),url('login-bg.jpg') center/cover no-repeat,#06182b;
+  }
+  .login-art{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
+  .login-card, .auth-card{
+    position:relative; z-index:2; width:100%; max-width:440px; text-align:center;
+    background:linear-gradient(180deg,#fdfbf6,#f8f4ea); border:2px solid #c9a24b; border-radius:22px; padding:30px 34px 22px;
+    box-shadow:0 0 0 4px rgba(201,162,75,.18),0 24px 70px rgba(0,0,0,.55),0 0 40px rgba(201,162,75,.25);
+  }
+  .login-card .emblem, .auth-card .emblem{width:132px; height:auto; display:block; margin:0 auto 4px; filter:drop-shadow(0 4px 10px rgba(0,0,0,.18));}
+  .login-card h3, .auth-card h3{
+    font-family:'Cinzel','Times New Roman',serif !important; font-weight:800; font-size:40px; letter-spacing:1.5px; line-height:1.05; margin:0 0 6px;
+    background:linear-gradient(180deg,#14532d 55%,#b8892b 130%); -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
+  }
+  .login-card .subtitle-main, .auth-card .subtitle-main{font-weight:700; font-size:15.5px; color:#1f2937; margin:0;}
+  .login-card .subtitle-sub, .auth-card .subtitle-sub{
+    display:flex; align-items:center; gap:10px; color:#4b5563; font-size:13px; margin:5px 0 20px;
+  }
+  .subtitle-sub::before, .subtitle-sub::after{content:""; flex:1; height:1.5px; background:linear-gradient(90deg,transparent,#c9a24b);}
+  .subtitle-sub::after{background:linear-gradient(270deg,transparent,#c9a24b);}
+  .login-field{position:relative; margin-bottom:12px; text-align:left;}
+  .login-field > i.lead-ico{position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#4b5563; font-size:18px; pointer-events:none;}
+  .login-field .form-control{
+    height:52px; padding:10px 44px 10px 46px; border-radius:12px; background:#f3efe6; border:1px solid #d9d2c1; font-size:14.5px; color:#1f2937;
+  }
+  .login-field .form-control:focus{background:#fff; border-color:#c9a24b; box-shadow:0 0 0 3px rgba(201,162,75,.25);}
+  .login-field .eye{position:absolute; right:10px; top:50%; transform:translateY(-50%); border:none; background:none; color:#6b7280; font-size:18px; padding:6px;}
+  .btn-sp-primary{
+    width:100%; height:52px; border-radius:12px; font-weight:700; font-size:16px; color:#fff; border:2px solid #d6b45f;
+    background:linear-gradient(180deg,#17703a,#0f4a28); box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 6px 16px rgba(10,60,30,.35);
+  }
+  .btn-sp-primary:hover{filter:brightness(1.08); color:#fff;}
+  .login-guru-link{font-size:13.5px; color:#374151; margin-top:16px;}
+  .login-guru-link a{color:#14532d; font-weight:700; text-decoration:none;}
+  .login-foot{text-wrap:balance; margin-top:14px; padding-top:12px; border-top:1px solid #e7e0cf; font-size:10.5px; color:#6b7280; line-height:1.5;}
+  @media (max-width:640px){.login-scene{background:linear-gradient(rgba(3,18,28,.15),rgba(3,18,28,.30)),url('login-bg-mobile.jpg') center/cover no-repeat,#06182b;}}
+  @media (max-width:480px){.login-card, .auth-card{padding:24px 20px 18px;} .login-card h3,.auth-card h3{font-size:34px;}}
+  #authError{display:none;}
+  .form-control, .form-select{border-radius:10px; padding:10px 13px; border:1px solid var(--sp-border); font-size:14px;}
+  .btn-sp{background:var(--sp-green-700); border:none; color:#fff; font-weight:600; border-radius:10px; padding:11px; width:100%;}
+  .btn-sp:hover{background:var(--sp-green-800); color:#fff;}
+  .btn-sp-outline{border:1px solid var(--sp-green-700); color:var(--sp-green-700); background:#fff; font-weight:600; border-radius:10px; padding:10px; width:100%;}
+  .auth-switch{text-align:center; margin-top:14px; font-size:13px; color:var(--sp-muted);}
+  .auth-switch a{color:var(--sp-green-700); font-weight:600; text-decoration:none;}
+  .form-label{font-size:12.5px; font-weight:600; color:var(--sp-text); margin-bottom:4px;}
+  #authError{display:none;}
 
-* **Inisial & Nama Pengguna:** Terdapat lingkaran dengan inisial **EP** dan nama **EDY PRANINGTIAS**.
+  /* kamera di halaman daftar/update wajah */
+  .face-capture-box{background:#0b1f14; border-radius:14px; overflow:hidden; position:relative; aspect-ratio:4/3; max-width:320px; margin:0 auto;}
+  .face-capture-box video, .face-capture-box canvas, .face-capture-box img{width:100%; height:100%; object-fit:cover; display:block;}
+  .face-capture-status{text-align:center; font-size:12.5px; margin-top:10px; font-weight:600;}
+
+  /* ---------- APP SHELL (setelah login) ---------- */
+  #guruApp{min-height:100vh; display:flex; flex-direction:column; padding-bottom:78px;}
+  .guru-topbar{background:var(--sp-green-700); color:#fff; padding:14px 18px; padding-top:calc(14px + env(safe-area-inset-top,0px));
+    display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:50;}
+  .guru-topbar .avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;background:rgba(255,255,255,.2); flex-shrink:0;}
+  .guru-topbar .nm{font-weight:700; font-size:14.5px;}
+  .guru-topbar .sc{font-size:11px; opacity:.85;}
+
+  .guru-page{display:none; padding:16px; flex:1;}
+  .guru-page.active{display:block;}
+
+  .gcard{background:#fff; border:1px solid var(--sp-border); border-radius:16px; padding:18px; margin-bottom:14px;}
+  .gcard h6{font-weight:700; font-size:14px; margin-bottom:10px;}
+
+  .stat-mini{display:flex; align-items:center; gap:10px; background:var(--sp-green-50); border-radius:12px; padding:12px 14px;}
+  .stat-mini .num{font-size:20px; font-weight:800; color:var(--sp-green-700); line-height:1;}
+  .stat-mini .lbl{font-size:11px; color:var(--sp-muted);}
+
+  .riwayat-item{display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--sp-border); font-size:13px;}
+  .riwayat-item:last-child{border-bottom:none;}
+
+  /* Bottom Nav */
+  .guru-bottomnav{
+    position:fixed; left:0; right:0; bottom:0; background:#fff; border-top:1px solid var(--sp-border);
+    display:flex; justify-content:space-around; padding:8px 4px; padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));
+    z-index:100; box-shadow:0 -2px 10px rgba(0,0,0,.05);
+  }
+  .nav-item{display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--sp-muted); text-decoration:none; font-size:10px; font-weight:600; flex:1;}
+  .nav-item i{font-size:19px;}
+  .nav-item.active{color:var(--sp-green-700);}
+  .nav-item.nav-center{position:relative;}
+  .nav-item.nav-center .nav-center-circle{
+    width:48px; height:48px; border-radius:50%; background:var(--sp-green-700); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:21px; margin-top:-26px;
+    border:4px solid #fff; box-shadow:0 4px 10px rgba(22,101,52,.35);
+  }
+  .nav-item.nav-center.active .nav-center-circle{background:var(--sp-green-800);}
+
+  /* ---------- ABSENSI WAJAH ---------- */
+  .absen-header{background:var(--sp-green-700); color:#fff; border-radius:14px; padding:14px 16px; margin-bottom:14px;}
+  .absen-header .ttl{font-weight:700; font-size:15px; display:flex; align-items:center; gap:8px;}
+  .absen-header .jarak{font-size:12px; opacity:.9; margin-top:3px; display:flex; align-items:center; gap:5px;}
+  .absen-camera-box{background:#000; border-radius:14px; overflow:hidden; position:relative; aspect-ratio:4/3; max-width:380px; margin:0 auto;}
+  .absen-camera-box video{width:100%; height:100%; object-fit:cover;}
+  .absen-camera-locked{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; background:rgba(0,0,0,.75); text-align:center; padding:20px;}
+  .absen-result-box{border-radius:12px; padding:14px 16px; margin-top:14px; font-size:13.5px; font-weight:600; display:flex; gap:10px; align-items:flex-start; border-left:4px solid;}
+  .absen-result-ok{background:#f0fdf4; border-color:var(--sp-green-600); color:var(--sp-green-800);}
+  .absen-result-fail{background:var(--sp-red-bg); border-color:var(--sp-red); color:#991b1b;}
+  .absen-result-box.d-none{display:none;}
+
+  .profile-photo-lg{width:90px; height:90px; border-radius:50%; object-fit:cover; background:var(--sp-green-50); border:3px solid var(--sp-green-50);}
+
+  /* ================= TEMA EMAS-HIJAU PORTAL GURU ================= */
+  :root{--gold:#c9a24b; --gold-l:#e6c97a; --cream:#fbf8f1;}
+  body{background:var(--cream);}
+  #guruApp{background:linear-gradient(180deg,#fbf8f1,#f3eee0 60%,#f7f3e8); padding-bottom:92px;}
+  #guruApp::before{content:""; position:fixed; inset:0; pointer-events:none; opacity:.05; z-index:0;
+    background-image:radial-gradient(circle at 20px 20px,#14532d 2px,transparent 3px),radial-gradient(circle at 0 0,#c9a24b 2px,transparent 3px); background-size:40px 40px;}
+  .guru-page{position:relative; z-index:1;}
+  .guru-topbar{z-index:50;}
+  .guru-topbar{
+    background:linear-gradient(rgba(6,40,24,.55),rgba(6,40,24,.78)),url('login-bg.jpg') center 30%/cover no-repeat,#0f3d24;
+    border-bottom:3px solid var(--gold); padding:14px 16px 16px; padding-top:calc(14px + env(safe-area-inset-top,0px));
+    box-shadow:0 6px 18px rgba(10,50,25,.35); gap:12px;
+  }
+  .guru-topbar .brand{width:34px;height:34px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));}
+  .guru-topbar .avatar{width:46px;height:46px;border:2px solid var(--gold-l); box-shadow:0 0 0 3px rgba(201,162,75,.3);}
+  .guru-topbar .nm{font-size:15px; letter-spacing:.2px;}
+  .guru-topbar .sc{font-size:11.5px; color:#f0e3bd; opacity:1;}
+  .guru-topbar .tag{font-family:'Great Vibes',cursive; font-size:15px; color:var(--gold-l); line-height:1; margin-top:2px;}
+  .guru-topbar .bell{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.14);border:1px solid rgba(230,201,122,.6);display:flex;align-items:center;justify-content:center;color:#fff;}
+
+  .gcard{background:linear-gradient(180deg,#fff,#fffdf8); border:1.5px solid #e2cf9c; border-radius:18px; padding:18px;
+    box-shadow:0 4px 14px rgba(120,90,20,.10); }
+  .gcard h6{font-family:'Cinzel',serif; font-weight:800; color:#14532d; letter-spacing:.4px; display:flex; align-items:center; gap:8px;}
+  .gcard h6::after{content:""; flex:1; height:1.5px; background:linear-gradient(90deg,var(--gold),transparent);}
+  .gcard.text-center h6{justify-content:center;} .gcard.text-center h6::after{display:none;}
+
+  /* kartu sapaan */
+  .hello-card{border-radius:20px; padding:16px 18px; margin-bottom:14px; color:#fff; position:relative; overflow:hidden;
+    background:linear-gradient(135deg,#166534,#0f3d24 70%); border:2px solid var(--gold); box-shadow:0 8px 20px rgba(10,60,30,.3);}
+  .hello-card::after{content:""; position:absolute; right:-30px; top:-30px; width:130px; height:130px; border-radius:50%; background:radial-gradient(circle,rgba(230,201,122,.35),transparent 70%);}
+  .hello-card .hi{font-size:12px; color:#f0e3bd;}
+  .hello-card .who{font-family:'Cinzel',serif; font-weight:800; font-size:19px; line-height:1.2; margin:2px 0 6px;}
+  .hello-card .sub{font-size:12px; opacity:.9;}
+  .hello-card .tgl{display:inline-flex; gap:6px; align-items:center; margin-top:10px; background:rgba(255,255,255,.14); border:1px solid rgba(230,201,122,.6); border-radius:999px; padding:4px 12px; font-size:11.5px;}
+
+  /* stat card berwarna */
+  .stat-mini{background:#fff; border:1.5px solid #e2cf9c; border-radius:16px; padding:12px; gap:10px; box-shadow:0 4px 12px rgba(120,90,20,.10); height:100%;}
+  .stat-mini .ico{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex-shrink:0;box-shadow:0 4px 10px rgba(0,0,0,.2);}
+  .ico-green{background:linear-gradient(135deg,#22c55e,#15803d);} .ico-gold{background:linear-gradient(135deg,#f0c75e,#b8892b);}
+  .ico-blue{background:linear-gradient(135deg,#38bdf8,#0369a1);}
+  .stat-mini .num{font-size:20px; color:#14532d; word-break:break-word;}
+  .stat-mini .num.sm{font-size:13.5px; line-height:1.2;}
+  .stat-mini .lbl{font-size:11px; font-weight:600;}
+
+  /* kegiatan aktif */
+  .keg-row{display:flex; gap:10px; align-items:flex-start; font-size:12.5px; margin-bottom:8px;}
+  .keg-row i{color:#b8892b; font-size:16px; margin-top:1px;}
+  .keg-name{font-weight:800; font-size:15px; color:#14532d; margin-bottom:8px; line-height:1.25;}
+  .badge-live,.badge-off{white-space:nowrap; flex-shrink:0; height:fit-content;}
+  .badge-live{background:#dcfce7; color:#15803d; border:1px solid #86efac; border-radius:999px; font-size:10.5px; font-weight:700; padding:3px 10px;}
+  .badge-off{background:#f3f4f6; color:#6b7280; border:1px solid #e5e7eb; border-radius:999px; font-size:10.5px; font-weight:700; padding:3px 10px;}
+
+  /* tombol utama emas */
+  .btn-sp{height:52px; border:2px solid #d6b45f; border-radius:14px; font-weight:700; font-size:15.5px;
+    background:linear-gradient(180deg,#17703a,#0f4a28); box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 6px 16px rgba(10,60,30,.35); display:flex; align-items:center; justify-content:center; gap:8px; margin-left:auto; margin-right:auto;}
+  .btn-sp:hover{background:linear-gradient(180deg,#17703a,#0f4a28); filter:brightness(1.08);}
+  .btn-sp:disabled{filter:grayscale(.6); opacity:.6;}
+  .btn-sp-outline{height:46px; border:1.5px solid var(--gold); color:#14532d; background:#fffdf6; border-radius:14px;}
+  .btn-absen-big{height:60px; font-size:17px; margin-bottom:14px; position:relative; overflow:hidden;}
+  .btn-absen-big::after{content:""; position:absolute; top:0; left:-60%; width:40%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent); transform:skewX(-20deg); animation:shine 3.2s infinite;}
+  @keyframes shine{to{left:130%;}}
+
+  .form-control, .form-select{background:#faf6ea; border:1px solid #dccfa8;}
+  .form-control:focus{background:#fff; border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,162,75,.25);}
+  .input-group-text{background:#f3e9c9; border:1px solid #dccfa8; color:#14532d;}
+  .profile-photo-lg{width:104px; height:104px; border:3px solid var(--gold); box-shadow:0 0 0 5px rgba(201,162,75,.2),0 8px 18px rgba(0,0,0,.18);}
+  .profile-cover{margin:-18px -18px 0; height:72px; border-radius:16px 16px 0 0; background:linear-gradient(rgba(6,40,24,.45),rgba(6,40,24,.7)),url('login-bg.jpg') center/cover;}
+  .profile-cover + img{margin-top:-52px;}
+  .riwayat-item{border-bottom:1px dashed #e2cf9c;}
+  .absen-header{background:linear-gradient(135deg,#166534,#0f3d24); border:2px solid var(--gold); border-radius:18px; box-shadow:0 6px 16px rgba(10,60,30,.3);}
+  .absen-camera-box{border:3px solid var(--gold); box-shadow:0 0 0 4px rgba(201,162,75,.2);}
+  .qr-frame{display:inline-block; padding:12px; background:#fff; border:2px solid var(--gold); border-radius:16px; box-shadow:0 0 0 4px rgba(201,162,75,.18); min-width:150px; min-height:150px;}
+
+  /* bottom nav emas-hijau */
+  .guru-bottomnav{background:linear-gradient(180deg,#14532d,#0b3520); border-top:3px solid var(--gold); box-shadow:0 -6px 18px rgba(0,0,0,.25);}
+  .nav-item{color:#cfe3d5;}
+  .nav-item.active{color:var(--gold-l);}
+  .nav-item.nav-center .nav-center-circle{width:56px;height:56px;margin-top:-32px;background:linear-gradient(180deg,#f0d27c,#b8892b);color:#0f3d24;border:4px solid #14532d;box-shadow:0 0 0 2px var(--gold),0 6px 14px rgba(0,0,0,.35);font-size:24px;}
+  .nav-item.nav-center.active .nav-center-circle{background:linear-gradient(180deg,#f7dd8e,#c9a24b);}
+  .nav-item.nav-center span{color:var(--gold-l);}
+  .guru-foot{text-align:center; font-size:10.5px; color:#8a7a4a; padding:4px 0 8px;}
+</style>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+</head>
+<body>
+
+<!-- ===================== AUTH VIEW ===================== -->
+<div id="authView" class="login-scene">
+  <div class="auth-card">
+    <img class="emblem" src="logo-emblem.png" alt="Logo SIPELLO">
+    <h3>SIPELLO</h3>
+    <p class="subtitle-main">Portal Guru &middot; Absensi Wajah</p>
+    <div class="subtitle-sub"><span>MGMP Penjasorkes SMP Swasta Bondowoso</span></div>
+    <div id="authError" class="alert alert-danger py-2 small"></div>
+    <div id="authSuccess" class="alert alert-success py-2 small d-none"></div>
+
+    <!-- LOGIN FORM -->
+    <div id="loginForm">
+      <div class="login-field"><i class="bi bi-person lead-ico"></i><input type="text" class="form-control" id="loginHp" placeholder="Masukkan username" autocapitalize="none" autocomplete="username"></div>
+      <div class="login-field"><i class="bi bi-lock lead-ico"></i><input type="password" class="form-control" id="loginPw" placeholder="Masukkan password" autocomplete="current-password"><button type="button" class="eye" onclick="togglePw('loginPw', this)" aria-label="Tampilkan password"><i class="bi bi-eye"></i></button></div>
+      <button class="btn-sp" id="btnLogin" onclick="handleGuruLogin()">Masuk</button>
+      <div class="auth-switch">Belum punya akun? <a href="#" onclick="showAuthScreen('register'); return false;">Daftar di sini</a></div>
+      <div class="login-foot">Seluruh Hak Cipta, Teknologi, &amp; Desain &copy; 2026 SIPELLO. By Edoy D Hagane<br><span style="opacity:.7;">Portal Guru v2.6</span></div>
+    </div>
+
+    <!-- REGISTER FORM (step 1: biodata) -->
+    <div id="registerFormStep1" class="d-none">
+      <h6 class="fw-bold mb-2" style="font-size:13px;color:var(--sp-green-700);">Biodata Diri</h6>
+      <div class="text-center mb-3">
+        <img id="regFotoPreview" src="https://ui-avatars.com/api/?background=e5e7eb&color=6b7280&name=%2B" alt="Foto profil" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid #dcfce7;">
+        <div class="mt-2">
+          <label for="regFotoFile" class="btn btn-sm btn-outline-success" style="border-radius:10px;font-weight:600;"><i class="bi bi-camera-fill"></i> Upload Foto Profil</label>
+          <input type="file" id="regFotoFile" accept="image/*" class="d-none">
+        </div>
+        <div class="text-muted" style="font-size:11px;">Foto ini tampil di profil Anda. Pilih foto wajah yang jelas (JPG/PNG).</div>
+      </div>
+      <div class="row g-2">
+        <div class="col-12"><label class="form-label">Nama Lengkap</label><input class="form-control" id="regNama"></div>
+        <div class="col-12"><label class="form-label">Username (untuk login)</label><input class="form-control" id="regUsername" placeholder="mis. edoy.hagane" autocapitalize="none" autocomplete="off"><div class="text-muted" style="font-size:11px;">4-20 karakter: huruf kecil, angka, titik/garis bawah. Tanpa spasi.</div></div>
+        <div class="col-6"><label class="form-label">Jenis Kelamin</label>
+          <select class="form-select" id="regJK"><option>Laki-laki</option><option>Perempuan</option></select>
+        </div>
+        <div class="col-6"><label class="form-label">Nomor HP (tanpa 0)</label><div class="input-group"><span class="input-group-text" style="font-weight:600;">+62</span><input type="tel" inputmode="numeric" class="form-control" id="regHp" placeholder="853xxxxxxx"></div></div>
+        <div class="col-6"><label class="form-label">Password</label><input type="password" class="form-control" id="regPw"></div>
+        <div class="col-6"><label class="form-label">Ulangi Password</label><input type="password" class="form-control" id="regPw2"></div>
+      </div>
+      <h6 class="fw-bold mb-2 mt-3" style="font-size:13px;color:var(--sp-green-700);">Data Sekolah</h6>
+      <div class="row g-2">
+        <div class="col-12"><label class="form-label">Nama Sekolah</label><input class="form-control" id="regSekolah"></div>
+        <div class="col-12"><label class="form-label">Alamat Sekolah</label><input class="form-control" id="regAlamatSekolah"></div>
+        <div class="col-6"><label class="form-label">Nama Kepala Sekolah</label><input class="form-control" id="regKepsekNama"></div>
+        <div class="col-6"><label class="form-label">No. HP Kepala Sekolah</label><div class="input-group"><span class="input-group-text" style="font-weight:600;">+62</span><input type="tel" inputmode="numeric" class="form-control" id="regKepsekHp" placeholder="8xxxxxxxxx"></div></div>
+      </div>
+      <button class="btn-sp mt-3" onclick="goToFaceCapture()">Lanjut: Rekam Wajah <i class="bi bi-arrow-right"></i></button>
+      <div class="auth-switch">Sudah punya akun? <a href="#" onclick="showAuthScreen('login'); return false;">Login di sini</a></div>
+    </div>
+
+    <!-- REGISTER FORM (step 2: face capture) -->
+    <div id="registerFormStep2" class="d-none">
+      <h6 class="fw-bold mb-2 text-center" style="font-size:13px;color:var(--sp-green-700);">Rekam Wajah Anda</h6>
+      <p class="text-muted text-center mb-2" style="font-size:11.5px;">Pastikan wajah terlihat jelas, pencahayaan cukup, tidak memakai masker/kacamata gelap.</p>
+      <div class="face-capture-box" id="regFaceBox">
+        <video id="regVideo" autoplay playsinline muted></video>
+      </div>
+      <div class="face-capture-status" id="regFaceStatus">Memuat model deteksi wajah...</div>
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn-sp-outline" onclick="showAuthScreen('register')"><i class="bi bi-arrow-left"></i> Kembali</button>
+        <button class="btn-sp" id="btnCaptureFace" onclick="captureRegisterFace()" disabled>Ambil Foto</button>
+      </div>
+      <button class="btn-sp mt-2 d-none" id="btnSubmitRegister" onclick="submitRegister()">Daftar Sekarang</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== APP GURU (setelah login) ===================== -->
+<div id="guruApp" class="d-none">
+  <div class="guru-topbar">
+    <img class="brand" src="logo-emblem.png" alt="">
+    <img class="avatar" id="topbarFoto" src="">
+    <div class="flex-grow-1" style="min-width:0;">
+      <div class="nm text-truncate" id="topbarNama">-</div>
+      <div class="sc text-truncate" id="topbarSekolah">-</div>
+      <div class="tag">Jejak Hadir, Bukti Mengabdi.</div>
+    </div>
+    <div class="bell"><i class="bi bi-bell-fill"></i></div>
+  </div>
+
+  <!-- PAGE: BERANDA -->
+  <div class="guru-page active" id="gpage-Beranda">
+    <div class="hello-card">
+      <div class="hi" id="berandaSalam">Selamat datang 👋</div>
+      <div class="who" id="berandaNama">-</div>
+      <div class="sub">Presensi MGMP Penjasorkes SMP Swasta Kab. Bondowoso</div>
+      <div class="tgl"><i class="bi bi-calendar3"></i> <span id="berandaTanggal"></span></div>
+    </div>
+    <div class="row g-2 mb-3">
+      <div class="col-6"><div class="stat-mini"><div class="ico ico-green"><i class="bi bi-calendar-check-fill"></i></div>
+        <div><div class="num" id="berandaTotalHadir">0</div><div class="lbl">Total Hadir</div></div></div></div>
+      <div class="col-6"><div class="stat-mini"><div class="ico ico-gold"><i class="bi bi-geo-alt-fill"></i></div>
+        <div><div class="num sm" id="berandaKegiatanAktif">-</div><div class="lbl">Kegiatan Aktif</div></div></div></div>
+    </div>
+    <button class="btn-sp btn-absen-big" onclick="goToGuruPage('Absensi')"><i class="bi bi-camera-fill"></i> Absensi Sekarang</button>
+    <div class="gcard" id="berandaKegCard">
+      <h6>Kegiatan Hari Ini</h6>
+      <div id="berandaKegBody" class="text-muted" style="font-size:12.5px;">Memuat...</div>
+    </div>
+    <div class="gcard text-center">
+      <h6>Kartu QR Saya</h6>
+      <div id="berandaQr" class="qr-frame"></div>
+      <div class="fw-semibold mt-2" style="font-size:12.5px;" id="berandaQrLabel"></div>
+      <p class="text-muted mb-0 mt-1" style="font-size:11.5px;">Tunjukkan QR ini ke petugas scan MGMP sebagai alternatif absensi wajah.</p>
+    </div>
+    <div class="gcard">
+      <h6>Riwayat Kehadiran Terakhir</h6>
+      <div id="berandaRiwayatList"><div class="text-muted" style="font-size:12.5px;">Memuat...</div></div>
+    </div>
+  </div>
+
+  <!-- PAGE: PROFIL -->
+  <div class="guru-page" id="gpage-Profil">
+    <div class="gcard text-center">
+      <div class="profile-cover"></div>
+      <img class="profile-photo-lg mb-2" id="profilFoto" src="">
+      <div class="mb-2">
+        <label for="profilFotoFile" class="btn btn-sm btn-outline-success" style="border-radius:999px;font-weight:600;border-color:#c9a24b;color:#14532d;"><i class="bi bi-camera-fill"></i> Ganti Foto Profil</label>
+        <input type="file" id="profilFotoFile" accept="image/*" class="d-none">
+      </div>
+      <h6 class="mb-0" id="profilNamaDisplay">-</h6>
+      <p class="text-muted" style="font-size:12px;" id="profilSekolahDisplay">-</p>
+    </div>
+    <div class="gcard">
+      <h6>Biodata</h6>
+      <div class="mb-2"><label class="form-label">Nama Lengkap</label><input class="form-control" id="profilNama"></div>
+      <div class="mb-2"><label class="form-label">Nomor HP</label><div class="input-group"><span class="input-group-text" style="font-weight:600;">+62</span><input type="tel" inputmode="numeric" class="form-control" id="profilHp" placeholder="853xxxxxxx"></div></div>
+      <div class="mb-2"><label class="form-label">Nama Sekolah</label><input class="form-control" id="profilSekolah"></div>
+      <div class="mb-2"><label class="form-label">Alamat Sekolah</label><input class="form-control" id="profilAlamatSekolah"></div>
+      <div class="mb-2"><label class="form-label">Nama Kepala Sekolah</label><input class="form-control" id="profilKepsekNama"></div>
+      <div class="mb-2"><label class="form-label">No. HP Kepala Sekolah</label><div class="input-group"><span class="input-group-text" style="font-weight:600;">+62</span><input type="tel" inputmode="numeric" class="form-control" id="profilKepsekHp" placeholder="8xxxxxxxxx"></div></div>
+      <button class="btn-sp mt-2" onclick="saveProfilGuru()">Simpan Perubahan</button>
+    </div>
+  </div>
+
+  <!-- PAGE: ABSENSI KEHADIRAN -->
+  <div class="guru-page" id="gpage-Absensi">
+    <div class="absen-header">
+      <div class="ttl"><i class="bi bi-person-bounding-box"></i> Absensi Wajah</div>
+      <div class="jarak"><i class="bi bi-geo-alt-fill"></i> <span id="absenJarakText">Mendeteksi lokasi...</span></div>
+    </div>
+    <div class="absen-camera-box">
+      <video id="absenVideo" autoplay playsinline muted></video>
+      <div class="absen-camera-locked" id="absenLockOverlay">
+        <i class="bi bi-lock-fill" style="font-size:30px;"></i>
+        <div class="mt-2" style="font-size:13px;" id="absenLockText">Kamera terkunci. Mendeteksi lokasi...</div>
+      </div>
+    </div>
+    <div class="text-center mt-3">
+      <button class="btn-sp" id="btnCheckinWajah" style="max-width:260px;" onclick="doCheckinWajah()" disabled>
+        <i class="bi bi-check-circle"></i> Absen Sekarang
+      </button>
+    </div>
+    <div class="absen-result-box d-none" id="absenResultBox"></div>
+    <div class="text-center mt-3">
+      <button class="btn-sp-outline" style="max-width:260px;" onclick="goToGuruPage('UpdateWajah')"><i class="bi bi-arrow-repeat"></i> Update Data Wajah</button>
+    </div>
+  </div>
+
+  <!-- PAGE: UPDATE DATA WAJAH -->
+  <div class="guru-page" id="gpage-UpdateWajah">
+    <div class="gcard">
+      <h6 class="text-center">Perbarui Data Wajah</h6>
+      <p class="text-muted text-center mb-2" style="font-size:12px;">Lakukan ini jika sistem sering gagal mengenali wajah Anda (misal karena perubahan penampilan).</p>
+      <div class="face-capture-box" id="updFaceBox">
+        <video id="updVideo" autoplay playsinline muted></video>
+      </div>
+      <div class="face-capture-status" id="updFaceStatus">Memuat model deteksi wajah...</div>
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn-sp-outline" onclick="goToGuruPage('Absensi')"><i class="bi bi-arrow-left"></i> Batal</button>
+        <button class="btn-sp" id="btnCaptureUpdate" onclick="captureUpdateFace()" disabled>Ambil &amp; Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: GANTI PASSWORD -->
+  <div class="guru-page" id="gpage-GantiPassword">
+    <div class="gcard">
+      <h6>Ganti Password</h6>
+      <div class="mb-2"><label class="form-label">Password Lama</label><input type="password" class="form-control" id="pwLama"></div>
+      <div class="mb-2"><label class="form-label">Password Baru</label><input type="password" class="form-control" id="pwBaru"></div>
+      <div class="mb-3"><label class="form-label">Ulangi Password Baru</label><input type="password" class="form-control" id="pwBaru2"></div>
+      <button class="btn-sp" onclick="handleGantiPassword()">Simpan Password Baru</button>
+      <div id="pwResultMsg" class="mt-2" style="font-size:12.5px;"></div>
+    </div>
+  </div>
+
+  <div class="guru-foot">© 2026 SIPELLO. By Edoy D Hagane</div>
+
+  <!-- BOTTOM NAV -->
+  <div class="guru-bottomnav">
+    <a href="#" class="nav-item active" data-gpage="Beranda" onclick="goToGuruPage('Beranda'); return false;"><i class="bi bi-house-fill"></i><span>Beranda</span></a>
+    <a href="#" class="nav-item" data-gpage="Profil" onclick="goToGuruPage('Profil'); return false;"><i class="bi bi-person-fill"></i><span>Profil</span></a>
+    <a href="#" class="nav-item nav-center" data-gpage="Absensi" onclick="goToGuruPage('Absensi'); return false;">
+      <div class="nav-center-circle"><i class="bi bi-camera-fill"></i></div><span>Absensi</span>
+    </a>
+    <a href="#" class="nav-item" data-gpage="GantiPassword" onclick="goToGuruPage('GantiPassword'); return false;"><i class="bi bi-key-fill"></i><span>Password</span></a>
+    <a href="#" class="nav-item" onclick="handleGuruLogout(); return false;"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
+  </div>
+</div>
 
 
-* **Nama Instansi:** Tertera tulisan **SMP ARIEF IBRAHIM** di bawah nama pengguna.
-
-
-* **Notifikasi:** Terdapat ikon lonceng notifikasi di pojok kanan atas.
-
-
-
----
-
-**2. Pesan Menyapa (Greeting Box)**
-
-* **Judul:** **Selamat Datang** dengan emotikon melambaikan tangan 👋.
-
-
-* **Instruksi:** *"Gunakan menu Absensi Kehadiran saat berada di lokasi kegiatan MGMP untuk melakukan presensi wajah."*
-
-
----
-
-**3. Ringkasan Status / Informasi Ringkas**
-
-* **Total Hadir:** Berjumlah `0` dengan ikon kalender/papan klip centang di sebelah kiri.
-
-
-* **Kegiatan Aktif:** Berstatus **Tidak ada** dengan ikon titik lokasi (pin) di sebelah kiri.
-
-
-
----
-
-**4. Tombol Utama (Aksi)**
-
-* **Tombol "Absensi Sekarang":** Tombol panjang berwarna hijau tua yang dilengkapi dengan ikon kamera di bagian tengahnya.
-
-
-
----
-
-**5. Kartu QR Saya (My QR Code Card)**
-
-* **Judul:** **Kartu QR Saya**.
-
-
-* **Visual:** Menampilkan sebuah *QR Code* berbentuk persegi hitam-putih di bagian tengah yang dapat dipindai untuk keperluan verifikasi/presensi.
-
-
-* **Teks Bawah QR:** Terpotong sebagian di area bawah, menampilkan teks nama pengguna.
-
-
-
----
-
-**6. Navigasi Bawah (Bottom Navigation Bar)**
-Terdapat 5 menu navigasi utama di bagian bawah layar:
-
-* **Beranda:** Aktif (berwarna hijau dengan ikon rumah).
-
-
-* **Profil:** Ikon orang.
-
-
-* **Absensi:** Ikon kamera bulat berwarna hijau yang menonjol di tengah.
-
-
-* **Password:** Ikon kunci.
-
-
-* **Logout:** Ikon pintu keluar/panah.
+<!-- ===================== MODAL CROP FOTO ===================== -->
+<div id="cropModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.85);flex-direction:column;">
+  <div style="color:#fff;text-align:center;padding:14px 12px 6px;font-weight:700;font-size:15px;">Atur Foto Profil</div>
+  <div style="color:#cbd5e1;text-align:center;font-size:12px;padding:0 16px 8px;">Geser foto &amp; cubit/zoom agar wajah pas di dalam bingkai.</div>
+  <div style="flex:1;min-height:0;padding:0 12px;"><div style="height:100%;"><img id="cropImage" alt="" style="max-width:100%;display:block;"></div></div>
+  <div style="display:flex;gap:8px;justify-content:center;padding:10px;">
+    <button type="button" class="btn btn-light btn-sm" onclick="cropAction('zoomOut')"><i class="bi bi-zoom-out"></i></button>
+    <button type="button" class="btn btn-light btn-sm" onclick="cropAction('zoomIn')"><i class="bi bi-zoom-in"></i></button>
+    <button type="button" class="btn btn-light btn-sm" onclick="cropAction('rotate')"><i class="bi bi-arrow-clockwise"></i></button>
+    <button type="button" class="btn btn-light btn-sm" onclick="cropAction('reset')"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+  </div>
+  <div style="display:flex;gap:10px;padding:4px 16px 18px;">
+    <button type="button" class="btn btn-outline-light flex-fill" onclick="cropCancel()">Batal</button>
+    <button type="button" class="btn btn-success flex-fill" style="font-weight:700;" onclick="cropConfirm()">Gunakan Foto</button>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+<script src="guru-scripts.js?v=20261016"></script>
+</body>
+</html>
