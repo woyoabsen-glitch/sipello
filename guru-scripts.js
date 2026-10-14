@@ -36,12 +36,17 @@ function callAPI(action, params) {
  *  INIT
  * ========================================================= */
 window.addEventListener('DOMContentLoaded', function () {
-  if (GURU_TOKEN) {
-    callAPI('getGuruProfile', [GURU_TOKEN]).then(function (res) {
-      if (res.success) { GURU_PROFILE = res.profile; enterApp(); }
-      else { localStorage.removeItem('sipello_guru_token'); GURU_TOKEN = null; }
-    }).catch(function () { /* token invalid/expired, tetap di layar login */ });
-  }
+  const wantRegister = (location.hash || '').toLowerCase() === '#daftar';
+  const showAuth = function (screen) {
+    document.getElementById('authView').classList.remove('d-none');
+    showAuthScreen(screen || 'login');
+  };
+  if (wantRegister) { showAuth('register'); return; }
+  if (!GURU_TOKEN) { location.replace('index.html'); return; }
+  callAPI('getGuruProfile', [GURU_TOKEN]).then(function (res) {
+    if (res.success) { GURU_PROFILE = res.profile; enterApp(); }
+    else { localStorage.removeItem('sipello_guru_token'); GURU_TOKEN = null; location.replace('index.html'); }
+  }).catch(function () { showAuth('login'); showAuthError('Tidak dapat terhubung ke server. Periksa koneksi lalu muat ulang.'); });
 });
 
 /* =========================================================
@@ -231,7 +236,7 @@ function fotoOrAvatar(foto, nama) {
 
 function goToGuruPage(pageName) {
   // Matikan kamera halaman lain saat pindah
-  if (pageName !== 'Absensi') { stopStream(absenStream); absenStream = null; if (absenWatchId) { navigator.geolocation.clearWatch(absenWatchId); absenWatchId = null; } }
+  if (pageName !== 'Absensi') { stopAutoScan(); stopStream(absenStream); absenStream = null; if (absenWatchId) { navigator.geolocation.clearWatch(absenWatchId); absenWatchId = null; } }
   if (pageName !== 'UpdateWajah') { stopStream(updStream); updStream = null; }
 
   document.querySelectorAll('.guru-page').forEach(function (el) { el.classList.remove('active'); });
@@ -255,7 +260,7 @@ function renderBerandaKegiatan(k) {
   if (!k) { el.innerHTML = '<div class="d-flex align-items-center gap-2"><span class="badge-off">TIDAK ADA KEGIATAN</span></div><div class="mt-2">Belum ada kegiatan MGMP yang aktif saat ini.</div>'; return; }
   let h = '<div class="d-flex justify-content-between align-items-start gap-2 mb-1"><div class="keg-name">' + esc(k.Nama) + '</div><span class="badge-live">● AKTIF</span></div>';
   if (k.Tema) h += '<div class="keg-row"><i class="bi bi-bookmark-star-fill"></i><div>' + esc(k.Tema) + '</div></div>';
-  if (k.Tanggal) h += '<div class="keg-row"><i class="bi bi-calendar-event-fill"></i><div>' + esc(k.Tanggal) + '</div></div>';
+  if (k.Tanggal) h += '<div class="keg-row"><i class="bi bi-calendar-event-fill"></i><div>' + esc(formatTanggalLengkap(k.Tanggal)) + '</div></div>';
   const w = k.Waktu || (k.JamMulai ? k.JamMulai + (k.JamSelesai ? ' - ' + k.JamSelesai : '') : '');
   if (w) h += '<div class="keg-row"><i class="bi bi-clock-fill"></i><div>' + esc(w) + '</div></div>';
   if (k.Lokasi) h += '<div class="keg-row"><i class="bi bi-geo-alt-fill"></i><div>' + esc(k.Lokasi) + '</div></div>';
@@ -272,15 +277,36 @@ function renderSapaan() {
   if (t) t.innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
 
+const HARI_ID = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+const BULAN_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+function parseTanggal(v) {
+  if (!v) return null;
+  const s = String(v);
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+function formatTanggalLengkap(v) {
+  const d = parseTanggal(v);
+  if (!d) return v ? String(v) : '-';
+  return HARI_ID[d.getDay()] + ', ' + d.getDate() + ' ' + BULAN_ID[d.getMonth()] + ' ' + d.getFullYear();
+}
+function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
 function loadBeranda() {
   renderSapaan();
-  callAPI('getGuruAttendanceHistory', [GURU_TOKEN, 10]).then(function (res) {
-    document.getElementById('berandaTotalHadir').innerText = res.riwayat.length;
+  callAPI('getGuruAttendanceHistory', [GURU_TOKEN, 200]).then(function (res) {
+    const all = res.riwayat || [];
+    document.getElementById('berandaTotalHadir').innerText = all.length;
     const el = document.getElementById('berandaRiwayatList');
-    if (!res.riwayat.length) { el.innerHTML = '<div class="text-muted" style="font-size:12.5px;">Belum ada riwayat kehadiran.</div>'; return; }
-    el.innerHTML = res.riwayat.map(function (r) {
-      return '<div class="riwayat-item"><div><b>' + r.Tanggal + '</b><br><span class="text-muted" style="font-size:11.5px;">Pukul ' + r.Jam + '</span></div>' +
-        '<span class="badge bg-success">HADIR</span></div>';
+    if (!all.length) { el.innerHTML = '<div class="text-muted" style="font-size:12.5px;">Belum ada riwayat kehadiran.</div>'; return; }
+    el.innerHTML = all.slice(0, 10).map(function (r) {
+      return '<div class="rw-item"><div class="rw-ico"><i class="bi bi-calendar2-check-fill"></i></div>' +
+        '<div class="rw-body"><div class="rw-title">' + escHtml(r.NamaKegiatan || 'Kegiatan MGMP') + '</div>' +
+        '<div class="rw-meta"><span><i class="bi bi-calendar-event"></i>' + escHtml(formatTanggalLengkap(r.Tanggal)) + '</span>' +
+        '<span><i class="bi bi-clock"></i>Pukul ' + escHtml(r.Jam || '-') + ' WIB</span></div></div>' +
+        '<span class="rw-badge">' + escHtml(r.Status || 'HADIR') + '</span></div>';
     }).join('');
   });
 
@@ -346,6 +372,7 @@ function haversineMetersClient(lat1, lon1, lat2, lon2) {
 
 function startAbsensiPage() {
   document.getElementById('absenResultBox').classList.add('d-none');
+  autoScanOn = false; autoBusy = false; autoDone = false; autoFail = 0; unlockAudio();
   absenLocked = true;
   updateAbsenLockUI();
 
@@ -393,43 +420,146 @@ function watchGpsForAbsensi() {
 function updateAbsenLockUI() {
   const overlay = document.getElementById('absenLockOverlay');
   const btn = document.getElementById('btnCheckinWajah');
-  if (absenLocked) { overlay.classList.remove('d-none'); btn.disabled = true; }
-  else { overlay.classList.add('d-none'); btn.disabled = false; }
+  const frame = document.getElementById('scanFrame');
+  if (absenLocked) { overlay.classList.remove('d-none'); btn.disabled = true; if (frame) frame.classList.add('d-none'); setScanStatus('warn', 'Menunggu Anda berada di lokasi kegiatan...'); }
+  else { overlay.classList.add('d-none'); btn.disabled = false; if (frame) frame.classList.remove('d-none'); }
+}
+
+function setScanStatus(kind, text) {
+  const el = document.getElementById('scanStatus'); if (!el) return;
+  el.className = 'scan-status' + (kind ? ' ' + kind : '');
+  document.getElementById('scanStatusText').innerText = text;
 }
 
 function startAbsenCamera() {
   navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false }).then(function (stream) {
     absenStream = stream;
-    document.getElementById('absenVideo').srcObject = stream;
+    const v = document.getElementById('absenVideo');
+    v.srcObject = stream;
+    v.onplaying = function () { startAutoScan(); };
+    if (v.readyState >= 3) startAutoScan();
   }).catch(function (err) {
     document.getElementById('absenJarakText').innerText = 'Gagal mengaktifkan kamera: ' + err.message;
+    setScanStatus('err', 'Kamera tidak dapat diaktifkan. Izinkan akses kamera.');
   });
+}
+
+/* ---------- ABSEN OTOMATIS: kamera terus memindai wajah, begitu cocok langsung tercatat ---------- */
+let autoScanOn = false, autoBusy = false, autoDone = false, autoFail = 0;
+
+function startAutoScan() {
+  if (autoScanOn || autoDone) return;
+  autoScanOn = true; autoFail = 0;
+  setScanStatus('', 'Memuat model pemindai wajah...');
+  loadFaceModels().then(function () {
+    setScanStatus('', 'Memindai wajah... hadapkan wajah ke kamera');
+    autoScanTick();
+  }).catch(function (e) { autoScanOn = false; setScanStatus('err', 'Gagal memuat model wajah: ' + e.message); });
+}
+
+function stopAutoScan() { autoScanOn = false; }
+
+function autoScanTick() {
+  if (!autoScanOn || autoDone) return;
+  const video = document.getElementById('absenVideo');
+  if (absenLocked || autoBusy || !absenStream || !video.videoWidth) { setTimeout(autoScanTick, 700); return; }
+  autoBusy = true;
+  detectFaceDescriptor(video).then(function (descriptor) {
+    if (!descriptor) { autoBusy = false; setScanStatus('', 'Memindai wajah... hadapkan wajah ke kamera'); setTimeout(autoScanTick, 600); return; }
+    setScanStatus('', 'Wajah terdeteksi, memverifikasi...');
+    const snap = captureSnapshotBase64(video);
+    return callAPI('guruCheckinWajah', [GURU_TOKEN, descriptor, currentLat, currentLng]).then(function (res) {
+      autoBusy = false;
+      if (res.success) { autoDone = true; autoScanOn = false; onAbsenSukses(res, snap, false); return; }
+      if (res.code === 'DUPLICATE') { autoDone = true; autoScanOn = false; onAbsenSukses(res, snap, true); return; }
+      if (res.code === 'FACE_NOT_RECOGNIZED') {
+        autoFail++;
+        setScanStatus('warn', 'Wajah belum dikenali, coba perbaiki pencahayaan & posisi wajah...');
+        setTimeout(autoScanTick, autoFail > 4 ? 4000 : 2000); return;
+      }
+      if (res.code === 'OUT_OF_RANGE' || res.code === 'NO_GPS') { setScanStatus('warn', res.message); setTimeout(autoScanTick, 2500); return; }
+      autoScanOn = false;
+      setScanStatus('err', res.message || 'Absensi gagal.');
+      showAbsenResult(false, res.message || 'Absen gagal, coba lagi.');
+    });
+  }).catch(function (err) {
+    autoBusy = false;
+    setScanStatus('warn', 'Gangguan koneksi, mencoba lagi...');
+    setTimeout(autoScanTick, 3000);
+  });
+}
+
+/* ---------- BUNYI "BIPPP" ---------- */
+let audioCtx = null;
+function unlockAudio() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch (e) {}
+}
+['pointerdown', 'touchstart', 'click'].forEach(function (ev) { document.addEventListener(ev, unlockAudio, { passive: true }); });
+
+function playBeep(ok) {
+  try {
+    unlockAudio(); if (!audioCtx) return;
+    const t0 = audioCtx.currentTime;
+    const tone = function (freq, start, dur) {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, t0 + start);
+      g.gain.exponentialRampToValueAtTime(0.6, t0 + start + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + start + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t0 + start); o.stop(t0 + start + dur + 0.02);
+    };
+    if (ok) { tone(1400, 0, 0.55); } else { tone(700, 0, 0.2); tone(520, 0.25, 0.3); }
+  } catch (e) {}
+  try { if (navigator.vibrate) navigator.vibrate(ok ? [120] : [80, 60, 80]); } catch (e) {}
+}
+
+/* ---------- POPUP HASIL ABSENSI ---------- */
+let apTimer = null;
+function onAbsenSukses(res, snap, duplicate) {
+  const g = res.guru || {};
+  playBeep(!duplicate);
+  setScanStatus('', duplicate ? 'Anda sudah tercatat hadir.' : 'Absensi berhasil!');
+  document.getElementById('apFoto').src = g.foto || snap || fotoOrAvatar('', g.nama);
+  document.getElementById('apFoto').onerror = function () { this.onerror = null; this.src = snap || fotoOrAvatar('', g.nama); };
+  document.getElementById('apNama').innerText = g.nama || (GURU_PROFILE && GURU_PROFILE.Nama) || '-';
+  document.getElementById('apSekolah').innerText = g.sekolah || (GURU_PROFILE && GURU_PROFILE.Sekolah) || '-';
+  const st = document.getElementById('apStatus');
+  st.className = 'ap-status' + (duplicate ? ' warn' : '');
+  st.innerHTML = '<i class="bi ' + (duplicate ? 'bi-info-circle-fill' : 'bi-patch-check-fill') + '"></i> ' + escHtml(duplicate ? 'SUDAH ABSEN' : (res.status || 'HADIR'));
+  document.getElementById('apJam').innerText = (g.jam || '-') + ' WIB';
+  document.getElementById('apTanggal').innerText = formatTanggalLengkap(res.tanggal || new Date().toISOString().slice(0, 10));
+  document.getElementById('apKegiatan').innerText = (res.kegiatan && res.kegiatan.nama) || (activeKegiatanCache && activeKegiatanCache.Nama) || '-';
+  document.getElementById('apCheck').style.display = duplicate ? 'none' : 'flex';
+  document.getElementById('absenPopup').classList.add('show');
+  clearTimeout(apTimer);
+  apTimer = setTimeout(closeAbsenPopup, 12000);
+}
+
+function closeAbsenPopup() {
+  clearTimeout(apTimer);
+  document.getElementById('absenPopup').classList.remove('show');
+  goToGuruPage('Beranda');
 }
 
 function doCheckinWajah() {
   const video = document.getElementById('absenVideo');
-  const resultBox = document.getElementById('absenResultBox');
   const btn = document.getElementById('btnCheckinWajah');
-  btn.disabled = true; btn.innerText = 'Memproses...';
-
+  if (autoBusy) return;
+  autoBusy = true;
+  btn.disabled = true;
   detectFaceDescriptor(video).then(function (descriptor) {
-    if (!descriptor) {
-      showAbsenResult(false, 'Wajah tidak terdeteksi jelas. Pastikan pencahayaan cukup dan coba lagi.');
-      btn.disabled = false; btn.innerHTML = '<i class="bi bi-check-circle"></i> Absen Sekarang';
-      return;
-    }
+    if (!descriptor) { autoBusy = false; btn.disabled = false; showAbsenResult(false, 'Wajah tidak terdeteksi jelas. Pastikan pencahayaan cukup dan coba lagi.'); return; }
+    const snap = captureSnapshotBase64(video);
     callAPI('guruCheckinWajah', [GURU_TOKEN, descriptor, currentLat, currentLng]).then(function (res) {
-      btn.disabled = false; btn.innerHTML = '<i class="bi bi-check-circle"></i> Absen Sekarang';
-      if (res.success) {
-        showAbsenResult(true, 'Absen Berhasil! Selamat datang, ' + res.guru.nama + '. Tercatat pukul ' + res.guru.jam + '.');
-        loadBeranda();
-      } else {
-        showAbsenResult(false, res.message || 'Absen gagal, coba lagi.');
-      }
-    }).catch(function (err) {
-      btn.disabled = false; btn.innerHTML = '<i class="bi bi-check-circle"></i> Absen Sekarang';
-      showAbsenResult(false, 'Gagal terhubung ke server: ' + err.message);
-    });
+      autoBusy = false; btn.disabled = false;
+      if (res.success) { autoDone = true; autoScanOn = false; onAbsenSukses(res, snap, false); }
+      else if (res.code === 'DUPLICATE') { autoDone = true; autoScanOn = false; onAbsenSukses(res, snap, true); }
+      else showAbsenResult(false, res.message || 'Absen gagal, coba lagi.');
+    }).catch(function (err) { autoBusy = false; btn.disabled = false; showAbsenResult(false, 'Gagal terhubung ke server: ' + err.message); });
   });
 }
 
@@ -507,9 +637,7 @@ function handleGuruLogout() {
   if (absenWatchId) navigator.geolocation.clearWatch(absenWatchId);
   localStorage.removeItem('sipello_guru_token');
   GURU_TOKEN = null; GURU_PROFILE = null;
-  document.getElementById('guruApp').classList.add('d-none');
-  document.getElementById('authView').classList.remove('d-none');
-  showAuthScreen('login');
+  location.replace('index.html');
 }
 
 /* =========================================================
