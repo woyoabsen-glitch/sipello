@@ -206,6 +206,52 @@
   .nav-item.nav-center.active .nav-center-circle{background:linear-gradient(180deg,#f7dd8e,#c9a24b);}
   .nav-item.nav-center span{color:var(--gold-l);}
   .guru-foot{text-align:center; font-size:10.5px; color:#8a7a4a; padding:4px 0 8px;}
+
+  /* riwayat */
+  .rw-item{display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px dashed #e2cf9c;}
+  .rw-item:last-child{border-bottom:none;}
+  .rw-ico{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;box-shadow:0 4px 10px rgba(21,128,61,.3);}
+  .rw-body{flex:1; min-width:0;}
+  .rw-title{font-weight:700; font-size:13.5px; color:#14532d; line-height:1.25;}
+  .rw-meta{font-size:12px; color:#6b7280; margin-top:3px; display:flex; flex-wrap:wrap; gap:4px 12px;}
+  .rw-meta i{color:#b8892b; margin-right:3px;}
+  .rw-badge{background:#dcfce7; color:#15803d; border:1px solid #86efac; border-radius:999px; font-size:10.5px; font-weight:700; padding:3px 10px; white-space:nowrap;}
+  /* status scan otomatis */
+  .scan-status{display:flex; align-items:center; justify-content:center; gap:8px; margin-top:14px; font-size:13px; font-weight:600; color:#14532d; text-align:center;}
+  .scan-status .dot{width:10px;height:10px;border-radius:50%;background:#16a34a;animation:pulse 1.2s infinite;flex-shrink:0;}
+  .scan-status.warn{color:#b45309;} .scan-status.warn .dot{background:#f59e0b;}
+  .scan-status.err{color:#b91c1c;} .scan-status.err .dot{background:#dc2626;animation:none;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(22,163,74,.6);}70%{box-shadow:0 0 0 10px rgba(22,163,74,0);}100%{box-shadow:0 0 0 0 rgba(22,163,74,0);}}
+  .absen-camera-box{position:relative;}
+  .absen-camera-box video{transform:scaleX(-1);}
+  .scan-frame{position:absolute; inset:14%; border:2px dashed rgba(240,210,124,.9); border-radius:50% / 42%; pointer-events:none; animation:scanbreath 2s ease-in-out infinite;}
+  @keyframes scanbreath{50%{transform:scale(1.04); opacity:.6;}}
+
+  /* popup hasil absensi */
+  #absenPopup{position:fixed; inset:0; z-index:4000; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(4,25,14,.78); backdrop-filter:blur(4px);}
+  #absenPopup.show{display:flex; animation:fadein .25s;}
+  @keyframes fadein{from{opacity:0}to{opacity:1}}
+  .ap-card{width:100%; max-width:380px; background:linear-gradient(180deg,#fffdf8,#f8f1dc); border:3px solid #c9a24b; border-radius:26px; padding:0 22px 22px; text-align:center; position:relative; overflow:hidden;
+    box-shadow:0 0 0 5px rgba(201,162,75,.25),0 24px 70px rgba(0,0,0,.55); animation:popin .45s cubic-bezier(.2,1.4,.4,1);}
+  @keyframes popin{from{transform:scale(.6); opacity:0}to{transform:scale(1); opacity:1}}
+  .ap-head{margin:0 -22px; padding:16px 12px 70px; color:#fff; background:linear-gradient(rgba(6,40,24,.5),rgba(6,40,24,.85)),url('login-bg.jpg') center/cover,#0f3d24; border-bottom:3px solid #c9a24b;}
+  .ap-head .t1{font-family:'Cinzel',serif; font-weight:800; font-size:17px; letter-spacing:1px;}
+  .ap-head .t2{font-family:'Great Vibes',cursive; font-size:18px; color:#f0d27c; line-height:1;}
+  .ap-photo-wrap{width:172px; height:172px; margin:-62px auto 10px; position:relative;}
+  .ap-photo{width:100%; height:100%; border-radius:50%; object-fit:cover; background:#e5e7eb; border:5px solid #c9a24b; box-shadow:0 0 0 6px rgba(255,255,255,.9),0 10px 26px rgba(0,0,0,.35);}
+  .ap-check{position:absolute; right:2px; bottom:6px; width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#22c55e,#15803d); color:#fff; font-size:26px; display:flex; align-items:center; justify-content:center; border:3px solid #fff; box-shadow:0 4px 10px rgba(0,0,0,.3); animation:tick .5s .3s both;}
+  @keyframes tick{from{transform:scale(0)}to{transform:scale(1)}}
+  .ap-name{font-family:'Cinzel',serif; font-weight:800; font-size:20px; color:#14532d; line-height:1.2;}
+  .ap-school{font-size:13px; color:#6b7280; margin:2px 0 10px;}
+  .ap-status{display:inline-flex; align-items:center; gap:6px; background:linear-gradient(180deg,#17703a,#0f4a28); color:#f0d27c; border:2px solid #d6b45f; border-radius:999px; padding:6px 22px; font-weight:800; letter-spacing:1.5px; font-size:15px;}
+  .ap-status.warn{background:linear-gradient(180deg,#f59e0b,#b45309); color:#fff;}
+  .ap-info{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;}
+  .ap-info .box{background:#fff; border:1.5px solid #e2cf9c; border-radius:14px; padding:9px 6px;}
+  .ap-info .box small{display:block; font-size:10.5px; color:#8a7a4a; font-weight:600;}
+  .ap-info .box b{font-size:17px; color:#14532d;}
+  .ap-info .box.full{grid-column:1 / -1;}
+  .ap-info .box.full b{font-size:13px; line-height:1.3; display:block;}
+  .ap-close{margin-top:16px; height:46px; font-size:15px;}
 </style>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&display=swap" rel="stylesheet">
@@ -215,7 +261,7 @@
 <body>
 
 <!-- ===================== AUTH VIEW ===================== -->
-<div id="authView" class="login-scene">
+<div id="authView" class="login-scene d-none">
   <div class="auth-card">
     <img class="emblem" src="logo-emblem.png" alt="Logo SIPELLO">
     <h3>SIPELLO</h3>
@@ -229,7 +275,7 @@
       <div class="login-field"><i class="bi bi-person lead-ico"></i><input type="text" class="form-control" id="loginHp" placeholder="Masukkan username" autocapitalize="none" autocomplete="username"></div>
       <div class="login-field"><i class="bi bi-lock lead-ico"></i><input type="password" class="form-control" id="loginPw" placeholder="Masukkan password" autocomplete="current-password"><button type="button" class="eye" onclick="togglePw('loginPw', this)" aria-label="Tampilkan password"><i class="bi bi-eye"></i></button></div>
       <button class="btn-sp" id="btnLogin" onclick="handleGuruLogin()">Masuk</button>
-      <div class="auth-switch">Belum punya akun? <a href="#" onclick="showAuthScreen('register'); return false;">Daftar di sini</a></div>
+      <div class="auth-switch">Belum punya akun? <a href="#" onclick="showAuthScreen('register'); return false;">Daftar di sini</a> &middot; <a href="index.html">Halaman login utama</a></div>
       <div class="login-foot">Seluruh Hak Cipta, Teknologi, &amp; Desain &copy; 2026 SIPELLO. By Edoy D Hagane<br><span style="opacity:.7;">Portal Guru v2.6</span></div>
     </div>
 
@@ -262,7 +308,7 @@
         <div class="col-6"><label class="form-label">No. HP Kepala Sekolah</label><div class="input-group"><span class="input-group-text" style="font-weight:600;">+62</span><input type="tel" inputmode="numeric" class="form-control" id="regKepsekHp" placeholder="8xxxxxxxxx"></div></div>
       </div>
       <button class="btn-sp mt-3" onclick="goToFaceCapture()">Lanjut: Rekam Wajah <i class="bi bi-arrow-right"></i></button>
-      <div class="auth-switch">Sudah punya akun? <a href="#" onclick="showAuthScreen('login'); return false;">Login di sini</a></div>
+      <div class="auth-switch">Sudah punya akun? <a href="index.html">Masuk di sini</a></div>
     </div>
 
     <!-- REGISTER FORM (step 2: face capture) -->
@@ -358,14 +404,16 @@
     </div>
     <div class="absen-camera-box">
       <video id="absenVideo" autoplay playsinline muted></video>
+      <div class="scan-frame d-none" id="scanFrame"></div>
       <div class="absen-camera-locked" id="absenLockOverlay">
         <i class="bi bi-lock-fill" style="font-size:30px;"></i>
         <div class="mt-2" style="font-size:13px;" id="absenLockText">Kamera terkunci. Mendeteksi lokasi...</div>
       </div>
     </div>
+    <div class="scan-status warn" id="scanStatus"><span class="dot"></span><span id="scanStatusText">Menyiapkan pemindai wajah...</span></div>
     <div class="text-center mt-3">
-      <button class="btn-sp" id="btnCheckinWajah" style="max-width:260px;" onclick="doCheckinWajah()" disabled>
-        <i class="bi bi-check-circle"></i> Absen Sekarang
+      <button class="btn-sp-outline" id="btnCheckinWajah" style="max-width:260px;" onclick="doCheckinWajah()" disabled>
+        <i class="bi bi-hand-index-thumb"></i> Absen Manual
       </button>
     </div>
     <div class="absen-result-box d-none" id="absenResultBox"></div>
@@ -417,6 +465,23 @@
 </div>
 
 
+<!-- ===================== POPUP HASIL ABSENSI ===================== -->
+<div id="absenPopup">
+  <div class="ap-card">
+    <div class="ap-head"><div class="t1">SIPELLO</div><div class="t2">Jejak Hadir, Bukti Mengabdi.</div></div>
+    <div class="ap-photo-wrap"><img class="ap-photo" id="apFoto" alt=""><div class="ap-check" id="apCheck"><i class="bi bi-check-lg"></i></div></div>
+    <div class="ap-name" id="apNama">-</div>
+    <div class="ap-school" id="apSekolah">-</div>
+    <div class="ap-status" id="apStatus"><i class="bi bi-patch-check-fill"></i> HADIR</div>
+    <div class="ap-info">
+      <div class="box"><small>JAM ABSENSI</small><b id="apJam">-</b></div>
+      <div class="box"><small>TANGGAL</small><b id="apTanggal" style="font-size:13px;">-</b></div>
+      <div class="box full"><small>KEGIATAN MGMP</small><b id="apKegiatan">-</b></div>
+    </div>
+    <button class="btn-sp ap-close" onclick="closeAbsenPopup()">Selesai</button>
+  </div>
+</div>
+
 <!-- ===================== MODAL CROP FOTO ===================== -->
 <div id="cropModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.85);flex-direction:column;">
   <div style="color:#fff;text-align:center;padding:14px 12px 6px;font-weight:700;font-size:15px;">Atur Foto Profil</div>
@@ -437,6 +502,6 @@
 <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
-<script src="guru-scripts.js?v=20261017"></script>
+<script src="guru-scripts.js?v=20261018"></script>
 </body>
 </html>
