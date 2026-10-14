@@ -366,6 +366,20 @@
     .stat-card .num{font-size:28px;}
   }
   .stat-card .sc-title{font-size:12.5px;}
+
+  /* ===== pilihan role login ===== */
+  .role-label{font-size:12px; font-weight:700; color:#6b5a2a; letter-spacing:.4px; text-align:left; margin:4px 0 8px; display:flex; align-items:center; gap:10px;}
+  .role-label::after{content:""; flex:1; height:1.5px; background:linear-gradient(90deg,#c9a24b,transparent);}
+  .role-pick{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
+  .role-opt{position:relative; border:1.5px solid #d9d2c1; background:#f6f1e4; border-radius:14px; padding:10px 8px 9px; cursor:pointer; text-align:center; transition:.15s; color:#4b5563; user-select:none;}
+  .role-opt i{display:flex; align-items:center; justify-content:center; width:38px; height:38px; margin:0 auto 4px; border-radius:50%; background:#e7dfc6; color:#14532d; font-size:18px;}
+  .role-opt b{display:block; font-size:12.5px; line-height:1.2;}
+  .role-opt small{display:block; font-size:10.5px; opacity:.8; margin-top:1px;}
+  .role-opt.active{border-color:#c9a24b; background:linear-gradient(180deg,#fffaf0,#fbf1d4); color:#14532d; box-shadow:0 0 0 3px rgba(201,162,75,.28),0 6px 14px rgba(120,90,20,.18);}
+  .role-opt.active i{background:linear-gradient(135deg,#17703a,#0f4a28); color:#f0d27c;}
+  .role-opt.active::after{content:"\F26A"; font-family:"bootstrap-icons"; position:absolute; top:6px; right:8px; color:#15803d; font-size:15px;}
+  .reg-link{font-size:13.5px; color:#374151; margin-top:14px;}
+  .reg-link a{color:#14532d; font-weight:700; text-decoration:none;}
 </style>
 </head>
 <body>
@@ -388,9 +402,14 @@
         <input type="password" class="form-control" id="loginPassword" placeholder="Masukkan password" autocomplete="current-password" required>
         <button type="button" class="eye" onclick="togglePw('loginPassword', this)" aria-label="Tampilkan password"><i class="bi bi-eye"></i></button>
       </div>
+      <div class="role-label"><i class="bi bi-person-badge"></i> Masuk sebagai</div>
+      <div class="role-pick" id="rolePick">
+        <div class="role-opt active" data-role="admin" onclick="setLoginRole('admin')" role="button" tabindex="0"><i class="bi bi-shield-check"></i><b>Pengurus / Admin</b><small>Kelola data &amp; rekap</small></div>
+        <div class="role-opt" data-role="guru" onclick="setLoginRole('guru')" role="button" tabindex="0"><i class="bi bi-mortarboard-fill"></i><b>Guru</b><small>Absensi wajah &amp; QR</small></div>
+      </div>
       <button type="submit" class="btn btn-sp-primary" id="loginBtn"><span id="loginBtnText">Masuk</span> <i class="bi bi-arrow-right ms-1"></i></button>
     </form>
-    <div class="login-guru-link"><i class="bi bi-person"></i> Anda guru? <a href="guru.html">Masuk / Daftar sebagai Guru</a></div>
+    <div class="reg-link">Belum punya akun? <a href="guru.html#daftar">Daftar sebagai Guru</a></div>
     <div class="login-foot">Seluruh Hak Cipta, Teknologi, &amp; Desain &copy; 2026 SIPELLO. By Edoy D Hagane</div>
   </div>
 </div>
@@ -980,12 +999,49 @@ let popupDuration = 2;
 /* =========================================================
  *  AUTH
  * ========================================================= */
+let LOGIN_ROLE = 'admin';
+function setLoginRole(r) {
+  LOGIN_ROLE = r;
+  document.querySelectorAll('#rolePick .role-opt').forEach(function (el) { el.classList.toggle('active', el.dataset.role === r); });
+  try { localStorage.setItem('sipello_login_role', r); } catch (e) {}
+  document.getElementById('loginError').style.display = 'none';
+}
+document.addEventListener('keydown', function (e) {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.classList && e.target.classList.contains('role-opt')) { e.preventDefault(); setLoginRole(e.target.dataset.role); }
+});
+window.addEventListener('DOMContentLoaded', function () {
+  let r = 'admin';
+  try { r = localStorage.getItem('sipello_login_role') || 'admin'; } catch (e) {}
+  setLoginRole(r === 'guru' ? 'guru' : 'admin');
+  // guru yang masih punya sesi tersimpan langsung dibawa ke portal guru
+  let t = null; try { t = localStorage.getItem('sipello_guru_token'); } catch (e) {}
+  if (t) location.replace('guru.html');
+});
+
+function handleGuruLoginFromHome(username, password, errBox) {
+  document.getElementById('loginBtnText').innerText = 'Memproses...';
+  callAPI('loginGuru', [username.toLowerCase(), password]).then(function (res) {
+    if (!res.success) {
+      document.getElementById('loginBtnText').innerText = 'Masuk';
+      errBox.innerText = res.message; errBox.style.display = 'block'; return;
+    }
+    try { localStorage.setItem('sipello_guru_token', res.token); } catch (e) {}
+    document.getElementById('loginBtnText').innerText = 'Mengalihkan...';
+    location.href = 'guru.html';
+  }).catch(function (err) {
+    document.getElementById('loginBtnText').innerText = 'Masuk';
+    errBox.innerText = 'Terjadi kesalahan: ' + err.message; errBox.style.display = 'block';
+  });
+}
+
 function handleLogin() {
   const username = document.getElementById('loginUsername').value.trim();
-  const password = document.getElementById('loginPassword').value.trim();
+  const rawPw = document.getElementById('loginPassword').value;
+  const password = rawPw.trim();
   const errBox = document.getElementById('loginError');
   errBox.style.display = 'none';
   if (!username || !password) return;
+  if (LOGIN_ROLE === 'guru') { handleGuruLoginFromHome(username, rawPw, errBox); return; }
 
   document.getElementById('loginBtnText').innerText = 'Memproses...';
   callAPI('login', [username, password])
