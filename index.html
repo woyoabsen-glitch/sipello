@@ -615,7 +615,7 @@
     <i class="bi bi-person-running" style="font-size:26px;"></i>
     <div>
       <div style="font-weight:600;font-size:13.5px;">Setiap langkah, setiap usaha, setiap keringat yang kita keluarkan adalah bagian dari dedikasi untuk pendidikan yang lebih baik.</div>
-      <div class="text-success" style="font-weight:700;font-size:12.5px;">SIPELLO - Setiap Keringat, Tercatat.</div>
+      <div class="text-success" style="font-weight:700;font-size:12.5px;">SIPELLO - Jejak Hadir, Bukti Mengabdi.</div>
     </div>
   </div>
 
@@ -879,7 +879,8 @@
         <h5><i class="bi bi-whatsapp text-success me-1"></i> Pengaturan WhatsApp (Fonnte)</h5>
         <div class="mb-3">
           <label class="form-label small">Token Fonnte <span id="waTokenInfo" class="text-muted"></span></label>
-          <input type="password" class="form-control" id="waToken" placeholder="Kosongkan jika tidak diubah" autocomplete="off">
+          <input type="text" class="form-control" id="waToken" name="fonnte_device_token" placeholder="Tempel TOKEN DEVICE Fonnte (kosongkan jika tidak diubah)" autocomplete="off" autocapitalize="none" spellcheck="false" style="-webkit-text-security:disc;">
+          <div class="form-text" style="font-size:11.5px;">Ambil dari fonnte.com &rarr; menu <b>Device</b> &rarr; klik token device (bukan token akun). Status device harus <b>Connected</b>.</div>
         </div>
         <div class="form-check form-switch mb-3">
           <input class="form-check-input" type="checkbox" id="waAktif">
@@ -895,6 +896,7 @@
           <input class="form-control" id="waTestHp" placeholder="No HP untuk tes, mis. 0853xxxx">
           <button class="btn btn-outline-success" onclick="waTest()">Kirim Tes</button>
         </div>
+        <button class="btn btn-sm btn-outline-secondary mt-2" onclick="waCek()"><i class="bi bi-plug"></i> Cek Koneksi Fonnte</button>
       </div>
     </div>
     <div class="col-lg-6">
@@ -1858,10 +1860,13 @@ function saveWaForm() {
     WA_PesanAbsenKepsek: document.getElementById('waTplAbsen').value,
     FonnteToken: document.getElementById('waToken').value
   };
-  callAPI('saveWaConfig', [SESSION_TOKEN, data]).then(function () {
+  callAPI('saveWaConfig', [SESSION_TOKEN, data]).then(function (r) {
     document.getElementById('waToken').value = '';
-    alert('Pengaturan WhatsApp tersimpan.'); loadWaPage();
+    alert('Pengaturan WhatsApp tersimpan.' + (r && r.tokenCheck ? '\n\nHasil cek token: ' + r.tokenCheck : '')); loadWaPage();
   }).catch(function (e) { alert(e.message); });
+}
+function waCek() {
+  callAPI('waCekKoneksi', [SESSION_TOKEN]).then(function (r) { alert(r.message); }).catch(function (e) { alert(e.message); });
 }
 function waTest() {
   const hp = document.getElementById('waTestHp').value.trim();
