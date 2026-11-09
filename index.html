@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SIPELLO - Sistem Informasi Presensi Elektronik</title>
 <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14532d">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Great+Vibes&display=swap" rel="stylesheet">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -840,7 +841,7 @@
   <div class="sp-card">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
       <h5 class="mb-0"><i class="bi bi-bar-chart-fill text-success me-1"></i> Rekap Kehadiran</h5>
-      <button class="btn btn-sp-green" onclick="exportRekapExcel()"><i class="bi bi-file-earmark-excel"></i> Export Excel</button>
+      <div class="d-flex gap-2 flex-wrap"><button class="btn btn-sp-green" onclick="exportLaporanExcel()"><i class="bi bi-file-earmark-excel"></i> Laporan Excel</button><button class="btn btn-sp-outline" onclick="exportLaporanPdf()"><i class="bi bi-file-earmark-pdf"></i> Laporan PDF</button></div>
     </div>
 
     <div class="row g-2 mb-3">
@@ -924,6 +925,18 @@
     <div class="mb-3"><label class="form-label small">Nama MGMP</label><input class="form-control" id="setNamaMGMP"></div>
     <div class="mb-3"><label class="form-label small">Tagline</label><input class="form-control" id="setTagline"></div>
     <div class="mb-3"><label class="form-label small">URL Logo</label><input class="form-control" id="setLogo" placeholder="https://..."></div>
+    <hr><div class="p-3 mb-3 rounded" style="background:#f0fdf4;border:1.5px solid #16a34a"><h6 class="mb-1"><i class="bi bi-person-badge text-success"></i> Ketua MGMP PJOK (penanda tangan laporan)</h6><div class="small text-muted mb-2">Hanya akun Admin yang dapat mengubah. Jika terjadi pergantian ketua, cukup ganti nama &amp; NIP di bawah ini, lalu simpan. Semua laporan berikutnya otomatis memakai nama baru.</div>
+      <div class="mb-2"><label class="form-label small">Nama Ketua MGMP PJOK</label><input class="form-control" id="setNamaKetua"></div>
+      <div><label class="form-label small">NIP / NIRA Ketua (opsional)</label><input class="form-control" id="setNIPKetua" placeholder="NIP. ..."></div></div>
+    <h6 class="mb-2"><i class="bi bi-file-earmark-text text-success"></i> Kop Surat Laporan</h6>
+    <div class="mb-2"><label class="form-label small">Kop baris 1</label><input class="form-control" id="setKop1" placeholder="PEMERINTAH KABUPATEN BONDOWOSO"></div>
+    <div class="mb-2"><label class="form-label small">Kop baris 2</label><input class="form-control" id="setKop2" placeholder="DINAS PENDIDIKAN"></div>
+    <div class="mb-2"><label class="form-label small">Kop baris 3 (huruf besar &amp; tebal)</label><input class="form-control" id="setKop3" placeholder="MUSYAWARAH GURU MATA PELAJARAN PJOK"></div>
+    <div class="mb-2"><label class="form-label small">Kop baris 4</label><input class="form-control" id="setKop4" placeholder="SMP SWASTA KABUPATEN BONDOWOSO"></div>
+    <div class="mb-2"><label class="form-label small">Alamat / sekretariat (opsional)</label><input class="form-control" id="setKopAlamat"></div>
+    <div class="mb-2"><label class="form-label small">Tempat tanda tangan</label><input class="form-control" id="setTempatTtd" placeholder="Bondowoso"></div>
+    <div class="mb-2"><label class="form-label small">Jabatan penanda tangan</label><input class="form-control" id="setJabatanTtd" placeholder="Ketua MGMP PJOK SMP Swasta Kabupaten Bondowoso"></div>
+    <hr>
     <div class="mb-3">
       <label class="form-label small">Radius GPS Default (meter): <span id="radiusVal">100</span></label>
       <input type="range" class="form-range" id="setRadius" min="20" max="500" step="10">
@@ -961,6 +974,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script>
 
 /* =========================================================
@@ -1771,19 +1785,156 @@ function loadRekap() {
   });
 }
 
-function exportRekapExcel() {
-  const rows = document.querySelectorAll('#tblRekap tr');
-  let csv = [];
-  rows.forEach(function (row) {
-    const cols = row.querySelectorAll('th, td');
-    const rowData = Array.from(cols).map(function (c) { return '"' + c.innerText.replace(/"/g,'""') + '"'; });
-    csv.push(rowData.join(','));
+/* =========================================================
+ *  LAPORAN KEHADIRAN: Excel (ExcelJS) & PDF (cetak) berkop surat + TTD Ketua MGMP
+ * ========================================================= */
+const LAP_DEF = { KopBaris1: 'PEMERINTAH KABUPATEN BONDOWOSO', KopBaris2: 'DINAS PENDIDIKAN', KopBaris3: 'MUSYAWARAH GURU MATA PELAJARAN PJOK', KopBaris4: 'SMP SWASTA KABUPATEN BONDOWOSO', KopAlamat: '', NamaKetua: '', NIPKetua: '', JabatanTtd: 'Ketua MGMP PJOK SMP Swasta Kabupaten Bondowoso', TempatTtd: 'Bondowoso' };
+const HARI_ID = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+const BULAN_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+function lapEsc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function lapTgl(s, withHari) {
+  if (!s) return '-';
+  const p = String(s).slice(0, 10).split('-'); if (p.length < 3) return s;
+  const d = new Date(+p[0], +p[1] - 1, +p[2]);
+  return (withHari ? HARI_ID[d.getDay()] + ', ' : '') + (+p[2]) + ' ' + BULAN_ID[+p[1] - 1] + ' ' + p[0];
+}
+function lapPengaturan(p) { const o = {}; Object.keys(LAP_DEF).forEach(function (k) { o[k] = (p && p[k] !== undefined && String(p[k]).trim() !== '') ? String(p[k]).trim() : LAP_DEF[k]; }); o.NamaKetua = (p && p.NamaKetua) || ''; o.NIPKetua = (p && p.NIPKetua) || ''; o.KopAlamat = (p && p.KopAlamat) || ''; return o; }
+function lapPct(a, b) { return b ? Math.round(a * 1000 / b) / 10 : 0; }
+function lapJam(k) { return k.jamMulai ? k.jamMulai + (k.jamSelesai ? ' - ' + k.jamSelesai : '') + ' WIB' : '-'; }
+function lapTempat(k) { return [k.lokasi, k.alamat].filter(Boolean).join(', ') || '-'; }
+function lapFetch() {
+  const f = { kegiatanId: document.getElementById('filterKegiatan').value, bulan: document.getElementById('filterBulan').value, tahun: document.getElementById('filterTahun').value };
+  return callAPI('getLaporanKehadiran', [SESSION_TOKEN, f]).then(function (d) {
+    if (!d.kegiatan.length) throw new Error('Tidak ada kegiatan pada filter yang dipilih.');
+    d.cfg = lapPengaturan(d.pengaturan); d.tglCetak = lapTgl(new Date().toISOString().slice(0, 10), false); return d;
   });
-  const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'Rekap_Kehadiran_SIPELLO.csv';
-  link.click();
+}
+
+/* ---------- PDF (cetak) ---------- */
+function lapKopHtml(cfg, logo, logo2) {
+  return '<table class="kop"><tr><td class="kl">' + (logo ? '<img src="' + logo + '">' : '') + '</td><td class="kt"><div>' + lapEsc(cfg.KopBaris1) + '</div><div>' + lapEsc(cfg.KopBaris2) + '</div><div class="b">' + lapEsc(cfg.KopBaris3) + '</div><div>' + lapEsc(cfg.KopBaris4) + '</div>' + (cfg.KopAlamat ? '<div class="s">' + lapEsc(cfg.KopAlamat) + '</div>' : '') + '</td><td class="kl kr">' + (logo2 ? '<img src="' + logo2 + '">' : '') + '</td></tr></table><div class="garis"></div>';
+}
+function lapTtdHtml(d) {
+  const c = d.cfg;
+  return '<div class="ttd"><div>' + lapEsc(c.TempatTtd) + ', ' + lapEsc(d.tglCetak) + '</div><div>' + lapEsc(c.JabatanTtd) + ',</div><div class="sp"></div><div class="nm">' + (c.NamaKetua ? lapEsc(c.NamaKetua) : '(...............................)') + '</div>' + (c.NIPKetua ? '<div>' + lapEsc(c.NIPKetua) + '</div>' : '') + '</div>';
+}
+function lapHalamanKegiatan(d, k, logo, logo2) {
+  const n = k.hadir.length, m = k.tidakHadir.length, t = n + m;
+  let h = '<section class="pg">' + lapKopHtml(d.cfg, logo, logo2) + '<div class="jdl">LAPORAN KEHADIRAN GURU</div>';
+  h += '<table class="info"><tr><td>Kegiatan</td><td>:</td><td>' + lapEsc(k.nama) + '</td></tr>' + (k.tema ? '<tr><td>Tema</td><td>:</td><td>' + lapEsc(k.tema) + '</td></tr>' : '') + '<tr><td>Hari / Tanggal</td><td>:</td><td>' + lapEsc(lapTgl(k.tanggal, true)) + '</td></tr><tr><td>Waktu</td><td>:</td><td>' + lapEsc(lapJam(k)) + '</td></tr><tr><td>Tempat</td><td>:</td><td>' + lapEsc(lapTempat(k)) + '</td></tr></table>';
+  h += '<div class="rk"><div><b>' + t + '</b><span>Guru terdaftar</span></div><div class="g"><b>' + n + '</b><span>Hadir (' + lapPct(n, t) + '%)</span></div><div class="o"><b>' + m + '</b><span>Tidak hadir (' + lapPct(m, t) + '%)</span></div></div>';
+  h += '<div class="sub">A. Daftar Guru Hadir</div><table class="tb"><thead><tr><th style="width:36px">No</th><th>Nama Guru</th><th>Asal Sekolah</th><th style="width:90px">Jam Kehadiran</th></tr></thead><tbody>' +
+    (n ? k.hadir.map(function (r, i) { return '<tr><td class="c">' + (i + 1) + '</td><td>' + lapEsc(r.nama) + '</td><td>' + lapEsc(r.sekolah) + '</td><td class="c">' + lapEsc(r.jam) + '</td></tr>'; }).join('') : '<tr><td colspan="4" class="c">Belum ada guru yang hadir.</td></tr>') + '</tbody></table>';
+  h += '<div class="sub">B. Catatan Guru Tidak Hadir</div>' + (m ? '<table class="tb"><thead><tr><th style="width:36px">No</th><th>Nama Guru</th><th>Asal Sekolah</th><th style="width:90px">Keterangan</th></tr></thead><tbody>' + k.tidakHadir.map(function (r, i) { return '<tr><td class="c">' + (i + 1) + '</td><td>' + lapEsc(r.nama) + '</td><td>' + lapEsc(r.sekolah) + '</td><td class="c">Tidak hadir</td></tr>'; }).join('') + '</tbody></table>' : '<div class="nihil">Seluruh guru terdaftar hadir pada kegiatan ini.</div>');
+  return h + lapTtdHtml(d) + '<div class="ft">Dicetak melalui SIPELLO &middot; ' + lapEsc(d.tglCetak) + '</div></section>';
+}
+function lapHalamanRekap(d, logo, logo2) {
+  let h = '<section class="pg">' + lapKopHtml(d.cfg, logo, logo2) + '<div class="jdl">REKAPITULASI KEHADIRAN GURU</div><div class="per">' + lapEsc(lapPeriodeLabel()) + '</div><table class="tb"><thead><tr><th style="width:36px">No</th><th>Kegiatan</th><th style="width:130px">Tanggal</th><th style="width:55px">Hadir</th><th style="width:70px">Tidak Hadir</th><th style="width:60px">% Hadir</th></tr></thead><tbody>';
+  let th = 0, tt = 0;
+  d.kegiatan.forEach(function (k, i) { const n = k.hadir.length, tot = n + k.tidakHadir.length; th += n; tt += tot; h += '<tr><td class="c">' + (i + 1) + '</td><td>' + lapEsc(k.nama) + '</td><td class="c">' + lapEsc(lapTgl(k.tanggal, false)) + '</td><td class="c">' + n + '</td><td class="c">' + k.tidakHadir.length + '</td><td class="c">' + lapPct(n, tot) + '%</td></tr>'; });
+  return h + '<tr class="tot"><td colspan="3" class="c"><b>Rata-rata kehadiran</b></td><td colspan="3" class="c"><b>' + lapPct(th, tt) + '%</b></td></tr></tbody></table>' + lapTtdHtml(d) + '<div class="ft">Dicetak melalui SIPELLO &middot; ' + lapEsc(d.tglCetak) + '</div></section>';
+}
+function lapPeriodeLabel() {
+  const b = document.getElementById('filterBulan').value, t = document.getElementById('filterTahun').value;
+  return 'Periode: ' + (b ? BULAN_ID[+b - 1] + ' ' : 'Semua bulan ') + (t || 'semua tahun');
+}
+const LAP_CSS = '@page{size:A4;margin:12mm 14mm}*{box-sizing:border-box}body{font-family:"Times New Roman",Times,serif;color:#000;font-size:12pt;margin:0}.pg{page-break-after:always;padding:0}.pg:last-child{page-break-after:auto}' +
+  '.kop{width:100%;border-collapse:collapse}.kl{width:95px;vertical-align:middle}.kl img{width:88px;height:auto;display:block}.kr img{margin-left:auto;width:72px}.kt{text-align:center;line-height:1.3;font-size:12pt}.kt .b{font-weight:700;font-size:14.5pt}.kt .s{font-size:9.5pt}.garis{border-top:3px solid #000;border-bottom:1px solid #000;height:4px;margin:4px 0 12px}' +
+  '.jdl{text-align:center;font-weight:700;font-size:13pt;text-decoration:underline;margin:6px 0 2px}.per{text-align:center;margin-bottom:8px}.info{border-collapse:collapse;margin:8px 0 8px;font-size:11.5pt}.info td{padding:1.5px 4px;vertical-align:top}.info td:first-child{width:120px}.info td:nth-child(2){width:10px}' +
+  '.rk{display:flex;gap:8px;margin:8px 0}.rk div{flex:1;border:1.5px solid #555;border-radius:6px;text-align:center;padding:4px}.rk b{display:block;font-size:17pt}.rk span{font-size:9.5pt}.rk .g{background:#dcfce7;border-color:#16a34a;-webkit-print-color-adjust:exact;print-color-adjust:exact}.rk .o{background:#ffedd5;border-color:#ea580c;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+  '.sub{font-weight:700;margin:10px 0 4px;font-size:11.5pt}.tb{width:100%;border-collapse:collapse;font-size:10.5pt}.tb th,.tb td{border:1px solid #000;padding:3px 6px}.tb th{background:#166534;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.tb .c{text-align:center}.tb tr{break-inside:avoid}.tb tr.tot td{background:#f1f5f9}.nihil{border:1px dashed #16a34a;padding:6px;font-style:italic;font-size:10.5pt}' +
+  '.ttd{width:250px;margin:18px 0 0 auto;text-align:center;font-size:11.5pt;break-inside:avoid}.ttd .sp{height:70px}.ttd .nm{font-weight:700;text-decoration:underline}.ft{margin-top:10px;font-size:8pt;color:#777;text-align:center}';
+let LAP_LOGO = null;
+function lapLogoData() {
+  if (LAP_LOGO) return Promise.resolve(LAP_LOGO);
+  const ambil = function (f) { return fetch(f).then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); }).then(function (b) { return 'data:image/png;base64,' + lapB64(b); }).catch(function () { return ''; }); };
+  return Promise.all([ambil('logo-mgmp.png'), ambil('logo-pemkab.png')]).then(function (a) { LAP_LOGO = a; return a; });
+}
+function exportLaporanPdf() {
+  const w = window.open('', '_blank');
+  if (!w) { alert('Pop-up diblokir browser. Izinkan pop-up untuk situs ini lalu coba lagi.'); return; }
+  w.document.write('<p style="font-family:sans-serif">Menyiapkan laporan...</p>');
+  Promise.all([lapFetch(), lapLogoData()]).then(function (res) {
+    const d = res[0], logo = res[1][0], logo2 = res[1][1];
+    const body = (d.kegiatan.length > 1 ? lapHalamanRekap(d, logo, logo2) : '') + d.kegiatan.map(function (k) { return lapHalamanKegiatan(d, k, logo, logo2); }).join('');
+    w.document.open(); w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan Kehadiran Guru</title><style>' + LAP_CSS + '</style></head><body>' + body + '</body></html>'); w.document.close();
+    const go = function () { w.focus(); w.print(); };
+    setTimeout(go, 400);
+  }).catch(function (e) { w.close(); alert(e.message); });
+}
+
+/* ---------- Excel (ExcelJS: berformat, logo, tanda tangan) ---------- */
+function lapB64(buf) { let s = '', b = new Uint8Array(buf); for (let i = 0; i < b.length; i += 8192) s += String.fromCharCode.apply(null, b.subarray(i, i + 8192)); return btoa(s); }
+const XL_BORD = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+function xlKop(wb, ws, d, logoId, lastCol, logoId2) {
+  const c = d.cfg, L = lastCol, lines = [[c.KopBaris1, 12, false], [c.KopBaris2, 12, false], [c.KopBaris3, 14, true], [c.KopBaris4, 12, false], [c.KopAlamat, 10, false]];
+  lines.forEach(function (ln, i) { const r = i + 1; ws.mergeCells(r, 2, r, L); const cell = ws.getCell(r, 2); cell.value = ln[0] || ''; cell.font = { name: 'Times New Roman', size: ln[1], bold: ln[2] }; cell.alignment = { horizontal: 'center', vertical: 'middle' }; ws.getRow(r).height = ln[2] ? 22 : 18; });
+  ws.getRow(5).height = c.KopAlamat ? 16 : 6;
+  for (let col = 1; col <= L; col++) ws.getCell(6, col).border = { top: { style: 'medium' }, bottom: { style: 'thin' } };
+  ws.getRow(6).height = 5;
+  if (logoId !== null && logoId !== undefined) ws.addImage(logoId, { tl: { col: 0.1, row: 0.1 }, ext: { width: 100, height: 90 } });
+  if (logoId2 !== null && logoId2 !== undefined) {
+    const px = ws.columns.map(function (c) { return Math.round(c.width * 7 + 5); }), total = px.reduce(function (a, b) { return a + b; }, 0); let x = total - 78, ci = 0;
+    while (ci < px.length - 1 && x > px[ci]) { x -= px[ci]; ci++; }
+    ws.addImage(logoId2, { tl: { col: ci + x / px[ci], row: 0.1 }, ext: { width: 66, height: 76 } });
+  }
+}
+function xlTtd(ws, d, r, L) {
+  const c = d.cfg, col = 3; let row = r + 1;
+  [[c.TempatTtd + ', ' + d.tglCetak, false], [c.JabatanTtd + ',', false]].forEach(function (x) { ws.mergeCells(row, col, row, L); const cell = ws.getCell(row, col); cell.value = x[0]; cell.font = { name: 'Times New Roman', size: 11 }; cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }; ws.getRow(row).height = x[0].length > 38 ? 32 : 17; row++; });
+  ws.getRow(row).height = 24; row++; ws.getRow(row).height = 24; row++; ws.getRow(row).height = 14; row++;
+  ws.mergeCells(row, col, row, L); const nm = ws.getCell(row, col); nm.value = c.NamaKetua || '(...............................)'; nm.font = { name: 'Times New Roman', size: 11, bold: true, underline: !!c.NamaKetua }; nm.alignment = { horizontal: 'center' }; row++;
+  if (c.NIPKetua) { ws.mergeCells(row, col, row, L); const n2 = ws.getCell(row, col); n2.value = c.NIPKetua; n2.font = { name: 'Times New Roman', size: 11 }; n2.alignment = { horizontal: 'center' }; row++; }
+  return row;
+}
+function xlTabelHead(ws, row, heads) { heads.forEach(function (h, i) { const cell = ws.getCell(row, i + 1); cell.value = h; cell.font = { name: 'Times New Roman', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF166534' } }; cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }; cell.border = XL_BORD; }); ws.getRow(row).height = 20; }
+function xlRow(ws, row, vals, centerIdx) { vals.forEach(function (v, i) { const cell = ws.getCell(row, i + 1); cell.value = v; cell.font = { name: 'Times New Roman', size: 11 }; cell.border = XL_BORD; cell.alignment = { vertical: 'middle', wrapText: true, horizontal: centerIdx.indexOf(i) > -1 ? 'center' : 'left' }; }); }
+function xlSetup(ws) { ws.pageSetup = { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0, horizontalCentered: true, margins: { left: 0.6, right: 0.6, top: 0.6, bottom: 0.7, header: 0.3, footer: 0.3 } }; ws.headerFooter = { oddFooter: '&L&8Dicetak melalui SIPELLO&R&8Halaman &P dari &N' }; ws.views = [{ showGridLines: false }]; }
+function xlSheetKegiatan(wb, d, k, logoId, nama, logoId2) {
+  const ws = wb.addWorksheet(nama, { properties: { defaultRowHeight: 17 } }); ws.columns = [{ width: 6 }, { width: 38 }, { width: 38 }, { width: 18 }]; const L = 4;
+  xlKop(wb, ws, d, logoId, L, logoId2);
+  ws.mergeCells(8, 1, 8, L); const jd = ws.getCell(8, 1); jd.value = 'LAPORAN KEHADIRAN GURU'; jd.font = { name: 'Times New Roman', size: 13, bold: true, underline: true }; jd.alignment = { horizontal: 'center' }; ws.getRow(8).height = 22;
+  let r = 10; const n = k.hadir.length, m = k.tidakHadir.length, t = n + m;
+  const info = [['Kegiatan', k.nama], ['Tema', k.tema], ['Hari / Tanggal', lapTgl(k.tanggal, true)], ['Waktu', lapJam(k)], ['Tempat', lapTempat(k)]].filter(function (x) { return x[1]; });
+  info.forEach(function (x) { ws.mergeCells(r, 1, r, 2); ws.mergeCells(r, 3, r, L); const a = ws.getCell(r, 1), b = ws.getCell(r, 3); a.value = x[0]; b.value = ': ' + x[1]; [a, b].forEach(function (c) { c.font = { name: 'Times New Roman', size: 11 }; c.alignment = { vertical: 'top', wrapText: true }; }); ws.getRow(r).height = Math.max(17, Math.ceil((x[1].length + 2) / 62) * 16); r++; });
+  r++; const rk = [['Guru terdaftar', t, 'FFF1F5F9'], ['Hadir', n + ' (' + lapPct(n, t) + '%)', 'FFDCFCE7'], ['Tidak hadir', m + ' (' + lapPct(m, t) + '%)', 'FFFFEDD5']];
+  rk.forEach(function (x) { ws.mergeCells(r, 1, r, 2); const a = ws.getCell(r, 1), b = ws.getCell(r, 3); a.value = x[0]; b.value = x[1]; [a, ws.getCell(r, 2), b, ws.getCell(r, 4)].forEach(function (c) { c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: x[2] } }; c.border = XL_BORD; c.font = { name: 'Times New Roman', size: 11, bold: true }; c.alignment = { horizontal: 'left', vertical: 'middle' }; }); ws.mergeCells(r, 3, r, 4); r++; });
+  r++; const sa = ws.getCell(r, 1); sa.value = 'A. Daftar Guru Hadir'; sa.font = { name: 'Times New Roman', size: 12, bold: true }; r++;
+  xlTabelHead(ws, r, ['No', 'Nama Guru', 'Asal Sekolah', 'Jam Kehadiran']); r++;
+  if (n) k.hadir.forEach(function (x, i) { xlRow(ws, r, [i + 1, x.nama, x.sekolah, x.jam], [0, 3]); r++; }); else { ws.mergeCells(r, 1, r, L); xlRow(ws, r, ['Belum ada guru yang hadir.'], [0]); r++; }
+  r++; const sb = ws.getCell(r, 1); sb.value = 'B. Catatan Guru Tidak Hadir'; sb.font = { name: 'Times New Roman', size: 12, bold: true }; r++;
+  if (m) { xlTabelHead(ws, r, ['No', 'Nama Guru', 'Asal Sekolah', 'Keterangan']); r++; k.tidakHadir.forEach(function (x, i) { xlRow(ws, r, [i + 1, x.nama, x.sekolah, 'Tidak hadir'], [0, 3]); r++; }); }
+  else { ws.mergeCells(r, 1, r, L); const z = ws.getCell(r, 1); z.value = 'Seluruh guru terdaftar hadir pada kegiatan ini.'; z.font = { name: 'Times New Roman', size: 11, italic: true }; r++; }
+  r++; r = xlTtd(ws, d, r, L); xlSetup(ws); ws.pageSetup.printArea = 'A1:D' + (r + 1);
+  return ws;
+}
+function xlSheetRekap(wb, d, logoId, logoId2) {
+  const ws = wb.addWorksheet('Rekap', { properties: { defaultRowHeight: 17 } }); ws.columns = [{ width: 6 }, { width: 46 }, { width: 22 }, { width: 10 }, { width: 13 }, { width: 11 }]; const L = 6;
+  xlKop(wb, ws, d, logoId, L, logoId2);
+  ws.mergeCells(8, 1, 8, L); const jd = ws.getCell(8, 1); jd.value = 'REKAPITULASI KEHADIRAN GURU'; jd.font = { name: 'Times New Roman', size: 13, bold: true, underline: true }; jd.alignment = { horizontal: 'center' };
+  ws.mergeCells(9, 1, 9, L); const pr = ws.getCell(9, 1); pr.value = lapPeriodeLabel(); pr.font = { name: 'Times New Roman', size: 11 }; pr.alignment = { horizontal: 'center' };
+  let r = 11; xlTabelHead(ws, r, ['No', 'Kegiatan', 'Tanggal', 'Hadir', 'Tidak Hadir', '% Hadir']); r++;
+  let th = 0, tt = 0;
+  d.kegiatan.forEach(function (k, i) { const n = k.hadir.length, tot = n + k.tidakHadir.length; th += n; tt += tot; xlRow(ws, r, [i + 1, k.nama, lapTgl(k.tanggal, false), n, k.tidakHadir.length, lapPct(n, tot) + '%'], [0, 2, 3, 4, 5]); r++; });
+  xlRow(ws, r, ['Rata-rata kehadiran', '', '', '', '', lapPct(th, tt) + '%'], [0, 5]); ws.mergeCells(r, 1, r, 5); ws.getCell(r, 1).value = 'Rata-rata kehadiran'; ws.getCell(r, 1).font = { name: 'Times New Roman', size: 11, bold: true }; ws.getCell(r, 1).alignment = { horizontal: 'center', vertical: 'middle' }; ws.getCell(r, 6).font = { name: 'Times New Roman', size: 11, bold: true }; r++;
+  r++; r = xlTtd(ws, d, r, L); xlSetup(ws); ws.pageSetup.printArea = 'A1:F' + (r + 1);
+}
+function exportLaporanExcel() {
+  if (typeof ExcelJS === 'undefined') { alert('Pustaka Excel belum termuat. Periksa koneksi internet lalu coba lagi.'); return; }
+  lapFetch().then(function (d) {
+    return lapLogoData().then(function (lg) {
+      const wb = new ExcelJS.Workbook(); wb.creator = 'SIPELLO'; wb.created = new Date();
+      const add = function (u) { return u ? wb.addImage({ base64: u.split(',')[1], extension: 'png' }) : null; };
+      const logoId = add(lg[0]), logoId2 = add(lg[1]);
+      if (d.kegiatan.length > 1) xlSheetRekap(wb, d, logoId, logoId2);
+      const used = {};
+      d.kegiatan.forEach(function (k, i) { let nm = (lapTgl(k.tanggal, false).slice(0, 12) + ' ' + k.nama).replace(/[\\\/?*\[\]:]/g, '').slice(0, 28).trim() || ('Kegiatan ' + (i + 1)); if (used[nm]) nm = nm.slice(0, 25) + ' ' + (i + 1); used[nm] = 1; xlSheetKegiatan(wb, d, k, logoId, nm, logoId2); });
+      return wb.xlsx.writeBuffer();
+    }).then(function (out) {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+      a.download = 'Laporan_Kehadiran_MGMP_PJOK.xlsx'; document.body.appendChild(a); a.click(); a.remove();
+    });
+  }).catch(function (e) { alert(e.message || e); });
 }
 
 /* =========================================================
@@ -1794,6 +1945,10 @@ function loadPengaturan() {
     document.getElementById('setNamaMGMP').value = s.NamaMGMP || '';
     document.getElementById('setTagline').value = s.Tagline || '';
     document.getElementById('setLogo').value = s.LogoUrl || '';
+    const kp = lapPengaturan(s);
+    document.getElementById('setKop1').value = kp.KopBaris1; document.getElementById('setKop2').value = kp.KopBaris2; document.getElementById('setKop3').value = kp.KopBaris3; document.getElementById('setKop4').value = kp.KopBaris4;
+    document.getElementById('setKopAlamat').value = kp.KopAlamat; document.getElementById('setTempatTtd').value = kp.TempatTtd; document.getElementById('setJabatanTtd').value = kp.JabatanTtd;
+    document.getElementById('setNamaKetua').value = kp.NamaKetua; document.getElementById('setNIPKetua').value = kp.NIPKetua;
     document.getElementById('setRadius').value = s.RadiusGPS || 100;
     document.getElementById('radiusVal').innerText = s.RadiusGPS || 100;
     document.getElementById('setDurasi').value = s.DurasiPopup || 2;
@@ -1817,13 +1972,16 @@ function savePengaturanForm() {
     NamaMGMP: document.getElementById('setNamaMGMP').value,
     Tagline: document.getElementById('setTagline').value,
     LogoUrl: document.getElementById('setLogo').value,
+    KopBaris1: document.getElementById('setKop1').value, KopBaris2: document.getElementById('setKop2').value, KopBaris3: document.getElementById('setKop3').value, KopBaris4: document.getElementById('setKop4').value,
+    KopAlamat: document.getElementById('setKopAlamat').value, TempatTtd: document.getElementById('setTempatTtd').value, JabatanTtd: document.getElementById('setJabatanTtd').value,
+    NamaKetua: document.getElementById('setNamaKetua').value, NIPKetua: document.getElementById('setNIPKetua').value,
     RadiusGPS: document.getElementById('setRadius').value,
     DurasiPopup: document.getElementById('setDurasi').value,
     Volume: document.getElementById('setVolume').value,
     Tema: document.getElementById('setTema').value
   };
   popupDuration = parseInt(data.DurasiPopup, 10);
-  callAPI('savePengaturan', [data]).then(function () { alert('Pengaturan berhasil disimpan.'); });
+  callAPI('savePengaturan', [SESSION_TOKEN, data]).then(function () { alert('Pengaturan berhasil disimpan.'); }).catch(function (e) { alert(e.message || e); });
 }
 /* =========================================================
  *  WHATSAPP (Fonnte)
@@ -1999,5 +2157,6 @@ function togglePw(id, btn) {
   btn.innerHTML = '<i class="bi ' + (show ? 'bi-eye-slash' : 'bi-eye') + '"></i>';
 }
 </script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
 </body>
 </html>
